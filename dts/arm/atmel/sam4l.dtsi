@@ -89,6 +89,7 @@
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
+			pinctrl-0 = <&pa23a_twi0_twd0 &pa24a_twi0_twck0>;
 		};
 		i2c1: i2c@4001c000 {
 			compatible = "atmel,sam-i2c-twim";
@@ -100,6 +101,7 @@
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
+			pinctrl-0 = <&pb0a_twi1_twd1 &pb1a_twi1_twck1>;
 		};
 		i2c2: i2c@40078000 {
 			compatible = "atmel,sam-i2c-twim";
@@ -111,6 +113,7 @@
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
+			pinctrl-0 = <&pa21a_twi2_twd2 &pa22a_twi2_twck2>;
 		};
 		i2c3: i2c@4007c000 {
 			compatible = "atmel,sam-i2c-twim";
@@ -122,6 +125,7 @@
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
+			pinctrl-0 = <&pb14c_twi3_twd3 &pb15c_twi3_twck3>;
 		};
 
 		spi0: spi@40008000 {

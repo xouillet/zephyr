@@ -1,0 +1,92 @@
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: Atmel SAM Family I2C (TWIM) node
+
+compatible: "atmel,sam-i2c-twim"
+
+include: i2c-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    peripheral-id:
+      type: int
+      required: true
+      description: peripheral ID
+
+    std-clk-slew-lim:
+        type: int
+        description: Slew limit of the TWCK output buffer
+        default: 0
+
+    std-clk-strenght-low:
+        type: int
+        description: Pull-down drive strength of the TWCK output buffer
+        default: 0
+
+    std-data-slew-lim:
+        type: int
+        description: Slew limit of the TWD output buffer
+        default: 0
+
+    std-data-strenght-low:
+        type: int
+        description: Pull-down drive strength of the TWD output buffer
+        default: 0
+
+    hs-clk-slew-lim:
+        type: int
+        description: |
+          Slew limit of the TWCK output buffer in high speed mode
+        default: 0
+
+    hs-clk-strenght-high:
+        type: int
+        description: |
+          Pull-up drive strength of the TWCK output buffer in high
+          speed mode
+        default: 0
+
+    hs-clk-strenght-low:
+        type: int
+        description: |
+          Pull-down drive strength of the TWCK output buffer in high
+          speed mode
+        default: 0
+
+    hs-data-slew-lim:
+        type: int
+        description: |
+          Slew limit of the TWD output buffer in high speed mode
+        default: 0
+
+    hs-data-strenght-low:
+        type: int
+        description: |
+          Pull-down drive strength of the TWD output buffer in high
+          speed mode
+        default: 0
+
+    hs-master-code:
+        type: int
+        description: |
+          3-bit code to be prefixed with 0b00001 to form a unique
+          8-bit HS-mode master code (0000 1XXX)
+        default: 0
+
+    pinctrl-0:
+      type: phandles
+      required: true
+      description: |
+        GPIO pin configuration for TWCK & TWD signals. We expect that
+        the phandles will reference pinctrl nodes. These nodes will
+        have a nodelabel that matches the Atmel SoC HAL defines and
+        be of the form p<port><pin><periph>_<inst>_<signal>.
+
+        For example the I2C on SAM4L would be
+           pinctrl-0 = <&pb0a_twi1_twd1 &pb1a_twi1_twck1>;
