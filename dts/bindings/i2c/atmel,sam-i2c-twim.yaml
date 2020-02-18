@@ -1,0 +1,20 @@
+# Copyright (c) 2019 Gerson Fernando Budke
+# SPDX-License-Identifier: Apache-2.0
+
+description: Atmel SAM Family I2C (TWIM) node
+
+compatible: "atmel,sam-i2c-twim"
+
+include: i2c-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    peripheral-id:
+      type: int
+      description: peripheral ID
+      required: true
