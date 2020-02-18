@@ -1,0 +1,10 @@
+identifier: sam4l_wm400_cape
+name: SAM4L WM-400 Cape
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - usart

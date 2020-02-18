@@ -1,0 +1,43 @@
+# Atmel SAM4L WM-400 BBB Cape Board configuration
+
+# Copyright (c) 2019 Gerson Fernando Budke
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_SAM4L_WM400_CAPE
+
+config BOARD
+	default "sam4l_wm400_cape"
+
+if USART_SAM_PORT_0
+
+choice USART_SAM_PORT_0_PIN_RXD
+	default USART_SAM_PORT_0_PIN_RXD_PB14
+endchoice
+
+choice USART_SAM_PORT_0_PIN_TXD
+	default USART_SAM_PORT_0_PIN_TXD_PB15
+endchoice
+
+endif
+
+if USART_SAM_PORT_1
+
+choice USART_SAM_PORT_1_PIN_RXD
+	default USART_SAM_PORT_1_PIN_RXD_PA15
+endchoice
+
+choice USART_SAM_PORT_1_PIN_TXD
+	default USART_SAM_PORT_1_PIN_TXD_PA16
+endchoice
+
+endif
+
+config SPI_SAM_PORT_0
+	default y
+	depends on SPI_SAM
+
+config IEEE802154_RF2XX
+	default y
+	depends on IEEE802154
+
+endif # BOARD_SAM4L_WM400_CAPE
