@@ -40,4 +40,9 @@
 	p##port##pin##periph##_##inst##_##signal { \
 	atmel,pins = < &pio##port pin PERIPH_##periph >; }
 
+#define DT_ATMEL_GPIO(inst, signal, port, pin, periph) \
+	p##port##pin##periph##_##inst##_##signal: \
+	p##port##pin##periph##_##inst##_##signal { \
+	atmel,pins = < &gpio##port pin PERIPH_##periph >; }
+
 #endif /* PINCTRL_ATMEL_SAM_H_ */
