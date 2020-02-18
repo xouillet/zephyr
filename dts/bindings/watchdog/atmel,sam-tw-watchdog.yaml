@@ -1,0 +1,46 @@
+# Copyright (c) 2019, Gerson Fernando Budke
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+    ATMEL SAM Timing Window Watchdog (TWW). The TWW works with a 32-bit
+    timer counter. This component may be enabled at reset by a fuse. The
+    default clock is RCSYS which runs at 115kHz.
+
+compatible: "atmel,sam-tw-watchdog"
+
+include: base.yaml
+
+properties:
+    reg:
+      required: true
+
+    label:
+      required: true
+
+    interrupts:
+      required: true
+
+    peripheral-id:
+      type: int
+      description: peripheral ID
+      required: true
+
+    psel:
+      type: int
+      description: |
+          Time Out Prescale. Counter bit PSEL is used as watchdog timeout
+          period. The minimal value is 7 and max value is 31. This represents
+          2pow(PSEL+1) clocks to overflow. The default value is 16 to achieve
+          1.139756522s to overflow.
+      required: true
+
+    tban:
+      type: int
+      description: |
+          Time Ban Prescale. Counter bit TBAN is used as watchdog “banned”
+          time frame. In this time frame clearing the WDT timer is forbidden,
+          otherwise a watchdog reset is generated and the WDT timer is cleared.
+          The presence of this property at Device Tree enables Windowing mode,
+          otherwise basic mode is activated. The minimal value is 7 and max
+          value is 31.
+      required: false
