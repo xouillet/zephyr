@@ -1,0 +1,334 @@
+# Atmel SAM4L USART configuration options
+
+# Copyright (c) 2020 Piotr Mienkowski
+# SPDX-License-Identifier: Apache-2.0
+
+# ---------- Port 0 ----------
+
+choice USART_SAM_PORT_0_PIN_RTS
+	prompt "RTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_0
+
+	config USART_SAM_PORT_0_PIN_RTS_PA6
+		bool "PA6"
+
+	config USART_SAM_PORT_0_PIN_RTS_PA8
+		bool "PA8"
+
+	config USART_SAM_PORT_0_PIN_RTS_PB12
+		bool "PB12"
+
+	config USART_SAM_PORT_0_PIN_RTS_PC1
+		bool "PC1"
+
+endchoice
+
+choice USART_SAM_PORT_0_PIN_CTS
+	prompt "CTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_0
+
+	config USART_SAM_PORT_0_PIN_CTS_PA9
+		bool "PA9"
+
+	config USART_SAM_PORT_0_PIN_CTS_PB11
+		bool "PB11"
+
+	config USART_SAM_PORT_0_PIN_CTS_PC2
+		bool "PC2"
+
+endchoice
+
+choice USART_SAM_PORT_0_PIN_CLK
+	prompt "CLK pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_0
+
+	config USART_SAM_PORT_0_PIN_CLK_PA4
+		bool "PA4"
+
+	config USART_SAM_PORT_0_PIN_CLK_PA10
+		bool "PA10"
+
+	config USART_SAM_PORT_0_PIN_CLK_PB13
+		bool "PB13"
+
+	config USART_SAM_PORT_0_PIN_CLK_PC0
+		bool "PC0"
+
+endchoice
+
+choice USART_SAM_PORT_0_PIN_RXD
+	prompt "RXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_0
+
+	config USART_SAM_PORT_0_PIN_RXD_PA5
+		bool "PA5"
+
+	config USART_SAM_PORT_0_PIN_RXD_PA11
+		bool "PA11"
+
+	config USART_SAM_PORT_0_PIN_RXD_PB0
+		bool "PB0"
+
+	config USART_SAM_PORT_0_PIN_RXD_PB14
+		bool "PB14"
+
+	config USART_SAM_PORT_0_PIN_RXD_PC2
+		bool "PC2"
+
+endchoice
+
+choice USART_SAM_PORT_0_PIN_TXD
+	prompt "TXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_0
+
+	config USART_SAM_PORT_0_PIN_TXD_PA7
+		bool "PA7"
+
+	config USART_SAM_PORT_0_PIN_TXD_PA12
+		bool "PA12"
+
+	config USART_SAM_PORT_0_PIN_TXD_PB1
+		bool "PB1"
+
+	config USART_SAM_PORT_0_PIN_TXD_PB15
+		bool "PB15"
+
+	config USART_SAM_PORT_0_PIN_TXD_PC3
+		bool "PC3"
+
+endchoice
+
+# ---------- Port 1 ----------
+
+choice USART_SAM_PORT_1_PIN_RTS
+	prompt "RTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_1
+
+	config USART_SAM_PORT_1_PIN_RTS_PA13
+		bool "PA13"
+
+	config USART_SAM_PORT_1_PIN_RTS_PB2
+		bool "PB2"
+
+	config USART_SAM_PORT_1_PIN_RTS_PC24
+		bool "PC24"
+
+endchoice
+
+choice USART_SAM_PORT_1_PIN_CLK
+	prompt "CLK pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_1
+
+	config USART_SAM_PORT_1_PIN_CLK_PA14
+		bool "PA14"
+
+	config USART_SAM_PORT_1_PIN_CLK_PB3
+		bool "PB3"
+
+	config USART_SAM_PORT_1_PIN_CLK_PC25
+		bool "PC25"
+
+endchoice
+
+choice USART_SAM_PORT_1_PIN_RXD
+	prompt "RXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_1
+
+	config USART_SAM_PORT_1_PIN_RXD_PA15
+		bool "PA15"
+
+	config USART_SAM_PORT_1_PIN_RXD_PB4
+		bool "PB4"
+
+	config USART_SAM_PORT_1_PIN_RXD_PC26
+		bool "PC26"
+
+endchoice
+
+choice USART_SAM_PORT_1_PIN_TXD
+	prompt "TXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_1
+
+	config USART_SAM_PORT_1_PIN_TXD_PA16
+		bool "PA16"
+
+	config USART_SAM_PORT_1_PIN_TXD_PB5
+		bool "PB5"
+
+	config USART_SAM_PORT_1_PIN_TXD_PC27
+		bool "PC27"
+
+endchoice
+
+# ---------- Port 2 ----------
+
+choice USART_SAM_PORT_2_PIN_RTS
+	prompt "RTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_2
+
+	config USART_SAM_PORT_2_PIN_RTS_PA17
+		bool "PA17"
+
+	config USART_SAM_PORT_2_PIN_RTS_PC7
+		bool "PC7"
+
+endchoice
+
+choice USART_SAM_PORT_2_PIN_CTS
+	prompt "CTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_2
+
+	config USART_SAM_PORT_2_PIN_CTS_PA22
+		bool "PA22"
+
+	config USART_SAM_PORT_2_PIN_CTS_PC8
+		bool "PC8"
+
+endchoice
+
+choice USART_SAM_PORT_2_PIN_CLK
+	prompt "CLK pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_2
+
+	config USART_SAM_PORT_2_PIN_CLK_PA18
+		bool "PA18"
+
+	config USART_SAM_PORT_2_PIN_CLK_PC8
+		bool "PC8"
+
+endchoice
+
+choice USART_SAM_PORT_2_PIN_RXD
+	prompt "RXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_2
+
+	config USART_SAM_PORT_2_PIN_RXD_PA19
+		bool "PA19"
+
+	config USART_SAM_PORT_2_PIN_RXD_PA25
+		bool "PA25"
+
+	config USART_SAM_PORT_2_PIN_RXD_PC11
+		bool "PC11"
+
+endchoice
+
+choice USART_SAM_PORT_2_PIN_TXD
+	prompt "TXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_2
+
+	config USART_SAM_PORT_2_PIN_TXD_PA20
+		bool "PA20"
+
+	config USART_SAM_PORT_2_PIN_TXD_PA26
+		bool "PA26"
+
+	config USART_SAM_PORT_3_PIN_TXD_PC12
+		bool "PC12"
+
+endchoice
+
+# ---------- Port 3 ----------
+
+choice USART_SAM_PORT_3_PIN_RTS
+	prompt "RTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_3
+
+	config USART_SAM_PORT_3_PIN_RTS_PA27
+		bool "PA27"
+
+	config USART_SAM_PORT_3_PIN_RTS_PB6
+		bool "PB6"
+
+	config USART_SAM_PORT_3_PIN_RTS_PC13
+		bool "PC13"
+
+	config USART_SAM_PORT_3_PIN_RTS_PC30
+		bool "PC30"
+
+endchoice
+
+choice USART_SAM_PORT_3_PIN_CTS
+	prompt "CTS pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_3
+
+	config USART_SAM_PORT_3_PIN_CTS_PA28
+		bool "PA28"
+
+	config USART_SAM_PORT_3_PIN_CTS_PB7
+		bool "PB7"
+
+endchoice
+
+choice USART_SAM_PORT_3_PIN_CLK
+	prompt "CLK pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_3
+
+	config USART_SAM_PORT_3_PIN_CLK_PA29
+		bool "PA29"
+
+	config USART_SAM_PORT_3_PIN_CLK_PB8
+		bool "PB8"
+
+	config USART_SAM_PORT_3_PIN_CLK_PC14
+		bool "PC14"
+
+	config USART_SAM_PORT_3_PIN_CLK_PC31
+		bool "PC31"
+
+endchoice
+
+choice USART_SAM_PORT_3_PIN_RXD
+	prompt "RXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_3
+
+	config USART_SAM_PORT_3_PIN_RXD_PA30
+		bool "PA30"
+
+	config USART_SAM_PORT_3_PIN_RXD_PB9
+		bool "PB9"
+
+	config USART_SAM_PORT_3_PIN_RXD_PC9
+		bool "PC9"
+
+	config USART_SAM_PORT_3_PIN_RXD_PC28
+		bool "PC28"
+
+endchoice
+
+choice USART_SAM_PORT_3_PIN_TXD
+	prompt "TXD pin"
+	depends on SOC_SERIES_SAM4L
+	depends on USART_SAM_PORT_3
+
+	config USART_SAM_PORT_3_PIN_TXD_PA31
+		bool "PA31"
+
+	config USART_SAM_PORT_3_PIN_TXD_PB10
+		bool "PB10"
+
+	config USART_SAM_PORT_3_PIN_TXD_PC10
+		bool "PC10"
+
+	config USART_SAM_PORT_3_PIN_TXD_PC29
+		bool "PC29"
+
+endchoice

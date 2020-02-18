@@ -93,9 +93,30 @@ static int usart_sam_init(struct device *dev)
 	soc_gpio_configure(&cfg->pin_rx);
 	soc_gpio_configure(&cfg->pin_tx);
 
+	/* Disable write protected registers */
+#ifdef CONFIG_SOC_SERIES_SAM4L
+	/* soc_pm_enable_pba_divmask(PBA_DIVMASK_CLK_USART); */
+	usart->US_WPMR = US_WPMR_WPKEY(0x555341);
+#endif
+
+	/**
+	 * Reset registers that could cause unpredictable
+	 * behavior after reset.
+	 */
+	usart->US_MR = 0;
+	usart->US_RTOR = 0;
+	usart->US_TTGR = 0;
+
 	/* Reset and disable USART */
 	usart->US_CR =   US_CR_RSTRX | US_CR_RSTTX
-		       | US_CR_RXDIS | US_CR_TXDIS | US_CR_RSTSTA;
+		       | US_CR_RXDIS | US_CR_TXDIS | US_CR_RSTSTA
+		       | US_CR_RTSDIS;
+
+#if defined(CONFIG_SOC_SERIES_SAM4S) || \
+	defined(CONFIG_SOC_SERIES_SAM4E) || \
+	defined(CONFIG_SOC_SERIES_SAM4L)
+	usart->US_CR = US_CR_DTRDIS;
+#endif
 
 	/* Disable Interrupts */
 	usart->US_IDR = 0xFFFFFFFF;
@@ -187,6 +208,9 @@ static int baudrate_set(Usart *const usart, u32_t baudrate,
 	}
 
 	usart->US_BRGR = US_BRGR_CD(divisor);
+#ifdef CONFIG_SOC_SERIES_SAM4L
+	usart->US_BRGR |= US_BRGR_FP(1);
+#endif
 
 	return 0;
 }

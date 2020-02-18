@@ -34,3 +34,14 @@ config USART_SAM_PORT_2
 	depends on USART_SAM
 	help
 	  Enable USART2 at boot
+
+# ---------- Port 3 ----------
+
+config USART_SAM_PORT_3
+	bool "Enable USART3"
+	depends on USART_SAM
+	depends on SOC_SERIES_SAM4L
+	help
+	  Enable USART3 at boot
+
+source "drivers/serial/Kconfig.usart_sam4l"
