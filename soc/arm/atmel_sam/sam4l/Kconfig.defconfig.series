@@ -48,4 +48,8 @@ config SPI_SAM
 	default y
 	depends on SPI
 
+config USART_SAM
+	default y
+	depends on SERIAL
+
 endif # SOC_SERIES_SAM4L
