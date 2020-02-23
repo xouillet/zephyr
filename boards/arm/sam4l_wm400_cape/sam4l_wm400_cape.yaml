@@ -7,5 +7,6 @@ toolchain:
   - gnuarmemb
   - xtools
 supported:
+  - gpio
   - spi
   - usart
