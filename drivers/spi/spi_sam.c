@@ -21,7 +21,12 @@ LOG_MODULE_REGISTER(spi_sam);
 struct spi_sam_config {
 	Spi *regs;
 	u32_t periph_id;
+#if defined(CONFIG_SOC_SERIES_SAM4L)
+	const struct soc_gpio_pin *pin_list;
+	u8_t pin_list_size;
+#else
 	struct soc_gpio_pin pins;
+#endif
 	struct soc_gpio_pin cs[SAM_SPI_CHIP_SELECT_COUNT];
 };
 
@@ -432,7 +437,12 @@ static int spi_sam_init(struct device *dev)
 	int i;
 
 	soc_pmc_peripheral_enable(cfg->periph_id);
+
+#if defined(CONFIG_SOC_SERIES_SAM4L)
+	soc_gpio_list_configure(cfg->pin_list, cfg->pin_list_size);
+#else
 	soc_gpio_configure(&cfg->pins);
+#endif
 
 	for (i = 0; i < SAM_SPI_CHIP_SELECT_COUNT; i++) {
 		if (cfg->cs[i].regs) {
@@ -457,47 +467,63 @@ static const struct spi_driver_api spi_sam_driver_api = {
 	.release = spi_sam_release,
 };
 
+#if defined(CONFIG_SOC_SERIES_SAM4L)
+#define SPI_STRUCT Gpio
+static const struct soc_gpio_pin pins_spi0[] = PINS_SPI0;
+#else
+#define SPI_STRUCT Pio
+#endif
+
 #ifndef PIN_SPI0_CS0
-#define PIN_SPI0_CS0 {0, (Pio *)0, 0, 0}
+#define PIN_SPI0_CS0 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI0_CS1
-#define PIN_SPI0_CS1 {0, (Pio *)0, 0, 0}
+#define PIN_SPI0_CS1 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI0_CS2
-#define PIN_SPI0_CS2 {0, (Pio *)0, 0, 0}
+#define PIN_SPI0_CS2 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI0_CS3
-#define PIN_SPI0_CS3 {0, (Pio *)0, 0, 0}
+#define PIN_SPI0_CS3 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #define PINS_SPI0_CS { PIN_SPI0_CS0, PIN_SPI0_CS1, PIN_SPI0_CS2, PIN_SPI0_CS3 }
 
 #ifndef PIN_SPI1_CS0
-#define PIN_SPI1_CS0 {0, (Pio *)0, 0, 0}
+#define PIN_SPI1_CS0 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI1_CS1
-#define PIN_SPI1_CS1 {0, (Pio *)0, 0, 0}
+#define PIN_SPI1_CS1 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI1_CS2
-#define PIN_SPI1_CS2 {0, (Pio *)0, 0, 0}
+#define PIN_SPI1_CS2 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #ifndef PIN_SPI1_CS3
-#define PIN_SPI1_CS3 {0, (Pio *)0, 0, 0}
+#define PIN_SPI1_CS3 {0, (SPI_STRUCT *)0, 0, 0}
 #endif
 
 #define PINS_SPI1_CS { PIN_SPI1_CS0, PIN_SPI1_CS1, PIN_SPI1_CS2, PIN_SPI1_CS3 }
 
 #define SPI_SAM_DEFINE_CONFIG(n)					\
 	static const struct spi_sam_config spi_sam_config_##n = {	\
-		.regs = (Spi *)DT_SPI_##n##_BASE_ADDRESS,		\
-		.periph_id = DT_SPI_##n##_PERIPHERAL_ID,		\
+		.regs = (Spi *)DT_INST_##n##_ATMEL_SAM_SPI_BASE_ADDRESS,\
+		.periph_id = DT_INST_##n##_ATMEL_SAM_SPI_PERIPHERAL_ID, \
 		.pins = PINS_SPI##n,					\
+		.cs = PINS_SPI##n##_CS,					\
+	}
+
+#define SPI_SAM_DEFINE_CONFIG2(n)					\
+	static const struct spi_sam_config spi_sam_config_##n = {	\
+		.regs = (Spi *)DT_INST_##n##_ATMEL_SAM_SPI_BASE_ADDRESS,\
+		.periph_id = DT_INST_##n##_ATMEL_SAM_SPI_PERIPHERAL_ID, \
+		.pin_list = pins_spi0,					\
+		.pin_list_size = ARRAY_SIZE(pins_spi0),			\
 		.cs = PINS_SPI##n##_CS,					\
 	}
 
@@ -508,15 +534,31 @@ static const struct spi_driver_api spi_sam_driver_api = {
 		SPI_CONTEXT_INIT_SYNC(spi_sam_dev_data_##n, ctx),	\
 	};								\
 	DEVICE_AND_API_INIT(spi_sam_##n,				\
-			    DT_SPI_##n##_NAME,				\
+			    DT_INST_##n##_ATMEL_SAM_SPI_LABEL,		\
 			    &spi_sam_init, &spi_sam_dev_data_##n,	\
 			    &spi_sam_config_##n, POST_KERNEL,		\
 			    CONFIG_SPI_INIT_PRIORITY, &spi_sam_driver_api)
 
-#if DT_SPI_0_BASE_ADDRESS
+#define SPI_SAM_DEVICE_INIT2(n)						\
+	SPI_SAM_DEFINE_CONFIG2(n);					\
+	static struct spi_sam_data spi_sam_dev_data_##n = {		\
+		SPI_CONTEXT_INIT_LOCK(spi_sam_dev_data_##n, ctx),	\
+		SPI_CONTEXT_INIT_SYNC(spi_sam_dev_data_##n, ctx),	\
+	};								\
+	DEVICE_AND_API_INIT(spi_sam_##n,				\
+			    DT_INST_##n##_ATMEL_SAM_SPI_LABEL,		\
+			    &spi_sam_init, &spi_sam_dev_data_##n,	\
+			    &spi_sam_config_##n, POST_KERNEL,		\
+			    CONFIG_SPI_INIT_PRIORITY, &spi_sam_driver_api)
+
+#if DT_INST_0_ATMEL_SAM_SPI_BASE_ADDRESS
+#if defined(CONFIG_SOC_SERIES_SAM4L)
+SPI_SAM_DEVICE_INIT2(0);
+#else
 SPI_SAM_DEVICE_INIT(0);
 #endif
+#endif
 
-#if DT_SPI_1_BASE_ADDRESS
+#if DT_INST_1_ATMEL_SAM_SPI_BASE_ADDRESS
 SPI_SAM_DEVICE_INIT(1);
 #endif

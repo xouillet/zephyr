@@ -7,4 +7,5 @@ toolchain:
   - gnuarmemb
   - xtools
 supported:
+  - spi
   - usart
