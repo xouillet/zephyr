@@ -28,6 +28,14 @@
 #error Library does not support the specified device.
 #endif
 
+/* Timer configuration */
+#define RISCV_MTIME_BASE             (0xD1000000UL + 0)
+#define RISCV_MTIMECMP_BASE          (0xD1000000UL + 0x8)
+
+/* lib-c hooks required RAM defined variables */
+#define RISCV_RAM_BASE               DT_SRAM_BASE_ADDRESS
+#define RISCV_RAM_SIZE               KB(DT_SRAM_SIZE)
+
 #endif /* !_ASMLANGUAGE */
 
 #endif /* _SOC__H_ */
