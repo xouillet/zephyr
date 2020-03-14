@@ -23,5 +23,10 @@ properties:
       required: false
       description: input clock source
 
+    clock-id:
+      type: int
+      required: false
+      description: Clock identificator
+
     "#clock-cells":
       const: 0
