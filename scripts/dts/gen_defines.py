@@ -668,11 +668,12 @@ def write_clocks(node):
             out_node(node, "CLOCK_CONTROLLER_ID",
                 controller.props["clock-id"].val)
 
-        if "fixed-clock" not in controller.compats:
+        if "fixed-clock" not in controller.compats and \
+            "pll-clock" not in controller.compats:
             continue
 
         if "clock-frequency" not in controller.props:
-            err(f"{controller!r} is a 'fixed-clock' but lacks a "
+            err(f"{controller!r} is a '[fixed/pll]-clock' but lacks a "
                 "'clock-frequency' property")
 
         out_node(node, "CLOCKS_CLOCK_FREQUENCY",
