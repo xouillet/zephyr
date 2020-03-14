@@ -664,6 +664,10 @@ def write_clocks(node):
             out_node(node, f"CLOCK_{str2ident(name)}_{clock_i}", val,
                      name_alias=clk_name_alias)
 
+        if "clock-id" in controller.props:
+            out_node(node, "CLOCK_CONTROLLER_ID",
+                controller.props["clock-id"].val)
+
         if "fixed-clock" not in controller.compats:
             continue
 
