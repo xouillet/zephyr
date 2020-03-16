@@ -63,6 +63,18 @@
 	clock-frequency = <48000000>;
 };
 
+&refclk {
+	status = "okay";
+};
+
+&pllclk {
+	status = "okay";
+};
+
+&rc1m {
+	status = "okay";
+};
+
 &usart0 {
 	current-speed = <115200>;
 	pinctrl-0 = <&pb14a_usart0_rxd0 &pb15a_usart0_txd0>;

@@ -66,6 +66,9 @@
 /** Master Clock (MCK) Frequency */
 #define SOC_ATMEL_SAM_MCK_FREQ_HZ       SOC_ATMEL_SAM_HCLK_FREQ_HZ
 
+#define SOC_ATMEL_REFCLK_NODE           DT_NODELABEL(refclk)
+#define SOC_ATMEL_PLLCLK_NODE           DT_NODELABEL(pllclk)
+
 /** Oscillator identifiers
  *    External Oscillator 0
  *    External 32 kHz oscillator
