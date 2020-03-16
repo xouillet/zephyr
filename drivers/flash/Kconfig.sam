@@ -11,3 +11,12 @@ config SOC_FLASH_SAM_EEFC
 	depends on SOC_FAMILY_SAM && !SOC_SERIES_SAM4L
 	help
 	  Enable the Atmel SAM series internal flash driver.
+
+config SOC_FLASH_SAM_FLASHCALW
+	bool "Atmel SAM flash driver"
+	default y
+	select FLASH_HAS_PAGE_LAYOUT
+	select FLASH_HAS_DRIVER_ENABLED
+	depends on SOC_SERIES_SAM4L
+	help
+	  Enable the Atmel SAM series internal flash driver.

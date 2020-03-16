@@ -37,4 +37,8 @@ config NUM_IRQS
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 48000000
 
+config SOC_FLASH_SAM_FLASHCALW
+	default y
+	depends on FLASH
+
 endif # SOC_SERIES_SAM4L
