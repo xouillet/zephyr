@@ -20,7 +20,7 @@
 		cpu0: cpu@0 {
 			device_type = "cpu";
 			compatible = "arm,cortex-m4";
-			clock-frequency = <48000000>;
+			clocks = <&pllclk>;
 			reg = <0>;
 		};
 	};
@@ -40,6 +40,7 @@
 			reg = <0x400f0c00 0x400>;
 			interrupts = <44 0>;
 			peripheral-id = <163>;
+			clocks = <&pbdclk>;
 			label = "WATCHDOG_0";
 			psel = <16>;
 			status = "disabled";
@@ -51,6 +52,7 @@
 			reg = <0x40018000 0x4000>;
 			interrupts = <61 0>;
 			peripheral-id = <68>;
+			clocks = <&pbaclk>;
 			label = "I2C_0";
 			status = "disabled";
 			#address-cells = <1>;
@@ -62,6 +64,7 @@
 			reg = <0x4001c000 0x4000>;
 			interrupts = <63 0>;
 			peripheral-id = <70>;
+			clocks = <&pbaclk>;
 			label = "I2C_1";
 			status = "disabled";
 			#address-cells = <1>;
@@ -73,6 +76,7 @@
 			reg = <0x40078000 0x4000>;
 			interrupts = <77 0>;
 			peripheral-id = <85>;
+			clocks = <&pbaclk>;
 			label = "I2C_2";
 			status = "disabled";
 			#address-cells = <1>;
@@ -84,6 +88,7 @@
 			reg = <0x4007c000 0x4000>;
 			interrupts = <78 0>;
 			peripheral-id = <86>;
+			clocks = <&pbaclk>;
 			label = "I2C_3";
 			status = "disabled";
 			#address-cells = <1>;
@@ -95,6 +100,7 @@
 			reg = <0x40008000 0x4000>;
 			interrupts = <54 0>;
 			peripheral-id = <65>;
+			clocks = <&pbaclk>;
 			label = "SPI_0";
 			status = "disabled";
 			#address-cells = <1>;
@@ -106,6 +112,7 @@
 			reg = <0x40024000 0x4000>;
 			interrupts = <65 1>;
 			peripheral-id = <72>;
+			clocks = <&pbaclk>;
 			status = "disabled";
 			label = "USART_0";
 		};
@@ -114,6 +121,7 @@
 			reg = <0x40028000 0x4000>;
 			interrupts = <66 1>;
 			peripheral-id = <73>;
+			clocks = <&pbaclk>;
 			status = "disabled";
 			label = "USART_1";
 		};
@@ -122,6 +130,7 @@
 			reg = <0x4002c000 0x4000>;
 			interrupts = <67 1>;
 			peripheral-id = <74>;
+			clocks = <&pbaclk>;
 			status = "disabled";
 			label = "USART_2";
 		};
@@ -130,6 +139,7 @@
 			reg = <0x40030000 0x4000>;
 			interrupts = <68 1>;
 			peripheral-id = <75>;
+			clocks = <&pbaclk>;
 			status = "disabled";
 			label = "USART_3";
 		};
@@ -139,6 +149,7 @@
 			reg = <0x400e1000 0x200>;
 			interrupts = <25 1>, <26 1>, <27 1>, <28 1>;
 			peripheral-id = <132>;
+			clocks = <&pbcclk>;
 			label = "PORTA";
 			gpio-controller;
 			#gpio-cells = <2>;
@@ -148,6 +159,7 @@
 			reg = <0x400e1200 0x200>;
 			interrupts = <29 1>, <30 1>, <31 1>, <32 1>;
 			peripheral-id = <132>;
+			clocks = <&pbcclk>;
 			label = "PORTB";
 			gpio-controller;
 			#gpio-cells = <2>;
@@ -157,9 +169,91 @@
 			reg = <0x400e1400 0x200>;
 			interrupts = <33 1>, <34 1>, <35 1>, <36 1>;
 			peripheral-id = <132>;
+			clocks = <&pbcclk>;
 			label = "PORTC";
 			gpio-controller;
 			#gpio-cells = <2>;
+		};
+
+		pm: pm@400e0000 {
+			compatible = "atmel,sam4l-pm";
+			reg = <0x400e0000 0x740>;
+			interrupts = <22 1>;
+			peripheral-id = <128>;
+			clocks = <&pllclk>;
+			#clock-cells = <1>;
+
+			clock-output-names = "pbaclk", "pbbclk",
+					     "pbcclk", "pbdclk";
+
+			clock-frequency  = <12000000>, <48000000>,
+					   <6000000>, <6000000>;
+
+			/* pbXclk = pllclk / 2^(pbX-div) */
+			pba-div = <2>;	/* pllclk / 4 */
+			pbb-div = <0>;	/* pllclk */
+			pbc-div = <3>;	/* pllclk / 8 */
+			pbd-div = <3>;
+
+			pbaclk: pbaclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <12000000>;
+			};
+
+			pbbclk: pbbclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <48000000>;
+			};
+
+			pbcclk: pbcclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <6000000>;
+			};
+
+			pbdclk: pbdclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <6000000>;
+			};
+		};
+	};
+
+	clocks {
+		/* 12 MHz reference crystal */
+		refclk: oscillator {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-id = <1>;
+			clock-frequency = <12000000>;
+			label = "refclk";
+			status = "disabled";
+		};
+
+		/* 48 MHz fixed main PLL */
+		pllclk: pllclk {
+			compatible = "pll-clock";
+			#clock-cells = <0>;
+			clocks = <&refclk>;
+
+			clock-id = <2>;
+			clock-frequency = <48000000>;
+			pll-mul = <16>;
+			pll-div = <4>;
+			label = "pllclk";
+			status = "disabled";
+		};
+
+		/* 1 MHz RC oscillator */
+		rc1m: rc_oscillator_0 {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-id = <6>;
+			clock-frequency = <1000000>;
+			label = "rc1m";
+			status = "disabled";
 		};
 	};
 };

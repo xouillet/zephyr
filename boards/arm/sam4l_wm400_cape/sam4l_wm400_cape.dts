@@ -56,8 +56,16 @@
 	};
 };
 
-&cpu0 {
-	clock-frequency = <48000000>;
+&refclk {
+	status = "okay";
+};
+
+&pllclk {
+	status = "okay";
+};
+
+&rc1m {
+	status = "okay";
 };
 
 &usart0 {

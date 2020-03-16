@@ -11,7 +11,6 @@
  * for the Atmel SAM4L series processor.
  */
 
-#include <device.h>
 #include <init.h>
 #include <soc.h>
 #include <arch/cpu.h>
@@ -45,7 +44,7 @@ static ALWAYS_INLINE void wdt_set_ctrl(u32_t ctrl)
 	/** Calculate delay for internal synchronization
 	 *    see 45.1.3 WDT errata
 	 */
-	dly = div_ceil(48000000 * 2, 115000);
+	dly = div_ceil(SOC_ATMEL_SAM_HCLK_FREQ_HZ * 2, 115000);
 	dly >>= 3; /* ~8 cycles for one while loop */
 	while (dly--) {
 		;
@@ -54,16 +53,8 @@ static ALWAYS_INLINE void wdt_set_ctrl(u32_t ctrl)
 	WDT->CTRL = ctrl | WDT_CTRL_KEY(WDT_SECOND_KEY);
 }
 
-#define XTAL_FREQ 12000000
 #define NR_PLLS 1
 #define PLL_MAX_STARTUP_CYCLES (SCIF_PLL_PLLCOUNT_Msk >> SCIF_PLL_PLLCOUNT_Pos)
-
-/**
- * Fcpu = 48MHz
- * Fpll = (Fclk * PLL_mul) / PLL_div
- */
-#define CONFIG_PLL0_MUL        (192000000 / XTAL_FREQ)
-#define CONFIG_PLL0_DIV         4
 
 static inline bool pll_is_locked(u32_t pll_id)
 {
@@ -103,9 +94,9 @@ static inline u32_t pll_config_init(u32_t divide, u32_t mul)
 #define SCIF_PLL0_VCO_RANGE0_MAX_FREQ   180000000
 #define SCIF_PLL0_VCO_RANGE0_MIN_FREQ    80000000
 /* VCO frequency range is 160-240 MHz (80-180 MHz if unset) */
-#define PLL_OPT_VCO_RANGE_HIGH    0
+#define PLL_OPT_VCO_RANGE_HIGH_INDEX    0
 /* Divide output frequency by two */
-#define PLL_OPT_OUTPUT_DIV        1
+#define PLL_OPT_OUTPUT_DIV_INDEX        1
 /* The threshold above which to set the #PLL_OPT_VCO_RANGE_HIGH option */
 #define PLL_VCO_LOW_THRESHOLD     ((SCIF_PLL0_VCO_RANGE1_MIN_FREQ \
 	+ SCIF_PLL0_VCO_RANGE0_MAX_FREQ) / 2)
@@ -120,7 +111,7 @@ static inline u32_t pll_config_init(u32_t divide, u32_t mul)
 	u32_t vco_hz;
 
 	/* Calculate internal VCO frequency */
-	vco_hz = XTAL_FREQ * mul;
+	vco_hz = DT_INST_0_PLL_CLOCK_CLOCKS_CLOCK_FREQUENCY * mul;
 	vco_hz /= divide;
 
 	pll_value = 0;
@@ -130,13 +121,13 @@ static inline u32_t pll_config_init(u32_t divide, u32_t mul)
 		mul *= 2;
 		vco_hz *= 2;
 		pll_value |= (1U << (SCIF_PLL_PLLOPT_Pos +
-				     PLL_OPT_OUTPUT_DIV));
+				     PLL_OPT_OUTPUT_DIV_INDEX));
 	}
 
 	/* Set VCO frequency range according to calculated value */
 	if (vco_hz >= PLL_VCO_LOW_THRESHOLD) {
 		pll_value |= 1U << (SCIF_PLL_PLLOPT_Pos +
-				    PLL_OPT_VCO_RANGE_HIGH);
+				    PLL_OPT_VCO_RANGE_HIGH_INDEX);
 	}
 
 	pll_value |= ((mul - 1) << SCIF_PLL_PLLMUL_Pos) |
@@ -205,7 +196,7 @@ static ALWAYS_INLINE void clock_init(void)
 		;
 	};
 
-#if 1
+#if defined(DT_INST_0_PLL_CLOCK)
 	/* Enable PLL */
 	if (!pll_is_locked(0)) {
 		if (!osc_is_ready(OSC_ID_OSC0)) {
@@ -222,8 +213,8 @@ static ALWAYS_INLINE void clock_init(void)
 				;
 			};
 		}
-		u32_t pll_config = pll_config_init(CONFIG_PLL0_DIV,
-						   CONFIG_PLL0_MUL);
+		u32_t pll_config = pll_config_init(DT_INST_0_PLL_CLOCK_PLL_DIV,
+						   DT_INST_0_PLL_CLOCK_PLL_MUL);
 
 		SCIF->UNLOCK = SCIF_UNLOCK_KEY(0xAAu) |
 			       SCIF_UNLOCK_ADDR((u32_t)&SCIF->PLL[0] -
@@ -235,18 +226,16 @@ static ALWAYS_INLINE void clock_init(void)
 		};
 	}
 
+#if (DT_INST_0_ARM_CORTEX_M4_CLOCK_CONTROLLER_ID == \
+	DT_INST_0_PLL_CLOCK_CLOCK_ID)
 	/** Set a flash wait state depending on the new cpu frequency.
 	 */
 	flashcalw_set_wait_state(1);
 	flashcalw_issue_command(FLASHCALW_FCMD_CMD_HSEN, -1);
-
-	/** Set PLL0 as source clock
-	 */
-	PM->UNLOCK = PM_UNLOCK_KEY(0xAAu) |
-		     PM_UNLOCK_ADDR((u32_t)&PM->MCCTRL - (u32_t)PM);
-	PM->MCCTRL = OSC_SRC_PLL0;
 #endif
-#if 0
+
+#endif
+#if defined(DT_INST_5_FIXED_CLOCK)
 	u32_t temp;
 
 	temp = BSCIF->RC1MCR;
@@ -259,15 +248,20 @@ static ALWAYS_INLINE void clock_init(void)
 		;
 	};
 
+#if (DT_INST_0_ARM_CORTEX_M4_CLOCK_CONTROLLER_ID == \
+	DT_INST_5_FIXED_CLOCK_CLOCK_ID)
+
 	/* Set a flash wait state depending on the new cpu frequency */
 	flashcalw_set_wait_state(0);
 	flashcalw_issue_command(FLASHCALW_FCMD_CMD_HSEN, -1);
+#endif
 
-	/* Set PLL0 as source clock */
+#endif
+	/** Set PLL0 as source clock
+	 */
 	PM->UNLOCK = PM_UNLOCK_KEY(0xAAu) |
 		     PM_UNLOCK_ADDR((u32_t)&PM->MCCTRL - (u32_t)PM);
-	PM->MCCTRL = OSC_SRC_RC1M;
-#endif
+	PM->MCCTRL = DT_INST_0_ARM_CORTEX_M4_CLOCK_CONTROLLER_ID;
 
 	/* Automatically switch to low power mode */
 	/* u32_t pmcon = 0; */
