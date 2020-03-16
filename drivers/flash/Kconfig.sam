@@ -3,12 +3,11 @@
 # Copyright (c) 2018 Aurelien Jarno
 # SPDX-License-Identifier: Apache-2.0
 
-config SOC_FLASH_SAM
+config SOC_FLASH_SAM_EEFC
 	bool "Atmel SAM flash driver"
 	default y
 	select FLASH_HAS_PAGE_LAYOUT
 	select FLASH_HAS_DRIVER_ENABLED
-	depends on SOC_FAMILY_SAM
-	depends on SOC_SERIES_SAME70
+	depends on SOC_FAMILY_SAM && !SOC_SERIES_SAM4L
 	help
 	  Enable the Atmel SAM series internal flash driver.

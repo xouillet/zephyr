@@ -76,7 +76,7 @@ config ENTROPY_SAM_RNG
 	default y
 	depends on ENTROPY_GENERATOR
 
-config SOC_FLASH_SAM
+config SOC_FLASH_SAM_EEFC
 	default y
 	depends on FLASH
 
