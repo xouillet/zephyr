@@ -1,0 +1,48 @@
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: Atmel SAM4L Power Manager (PM)
+
+compatible: "atmel,sam4l-pm"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+    reg:
+      required: true
+
+    peripheral-id:
+      type: int
+      description: peripheral ID
+      required: true
+
+    clock-output-names:
+      type: string-array
+      required: true
+
+    clock-frequency:
+      type: array
+      required: true
+
+    pba-div:
+      type: int
+      required: true
+      default: 0
+
+    pbb-div:
+      type: int
+      required: true
+      default: 0
+
+    pbc-div:
+      type: int
+      required: true
+      default: 0
+
+    pbd-div:
+      type: int
+      required: true
+      default: 0
+
+    "#clock-cells":
+      const: 1
