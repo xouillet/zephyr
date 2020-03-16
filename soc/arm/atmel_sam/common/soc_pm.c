@@ -11,6 +11,8 @@
 #include <soc.h>
 #include <sys/__assert.h>
 #include <sys/util.h>
+#include <errno.h>
+#include <devicetree.h>
 
 static uint32_t bridge_peripheral_instances[] = {
 	1,	/* CPU MASK Instances */
@@ -96,4 +98,36 @@ void soc_pm_enable_pba_divmask(uint32_t mask)
 			  PM_UNLOCK_ADDR((uint32_t)&PM->PBADIVMASK -
 					 (uint32_t)PM);
 	PM->PBADIVMASK = temp_mask;
+}
+
+uint32_t soc_pmc_peripheral_get_clock_hz(uint32_t id)
+{
+	uint32_t bus_id = id >> 5;
+	uint32_t per_idx = id & 0x1F;
+	uint32_t div_mask;
+
+	if (bus_id >= 6) {
+		return -EINVAL;
+	}
+
+	if (per_idx >= bridge_peripheral_instances[bus_id]) {
+		return -EINVAL;
+	}
+
+	if (bus_id == PM_CLK_GRP_CPU) {
+		div_mask = PM->CPUSEL;
+	} else if (bus_id == PM_CLK_GRP_HSB) {
+		div_mask = 0;
+	} else { /* PBA, PBB, PBC, PBD */
+		bus_id -= PM_CLK_GRP_PBA;
+		div_mask = *(&PM->PBASEL + bus_id);
+	}
+
+	if (div_mask & PM_CPUSEL_CPUDIV) {
+		/* CPU/APBx clock equals main clock divided by 2^(CPUSEL+1) */
+		return (SOC_ATMEL_SAM_HCLK_FREQ_HZ >>
+			(PM_CPUSEL_CPUSEL(div_mask) + 1));
+	}
+
+	return SOC_ATMEL_SAM_HCLK_FREQ_HZ;
 }

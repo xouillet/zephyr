@@ -35,4 +35,12 @@ void soc_pmc_peripheral_disable(uint32_t id);
  */
 uint32_t soc_pmc_peripheral_is_enabled(uint32_t id);
 
+/**
+ * @brief Return the peripheral clock frequency.
+ *
+ * @param id   peripheral module id, as defined in data sheet.
+ * @return     peripheral clock frequency
+ */
+uint32_t soc_pmc_peripheral_get_clock_hz(uint32_t id);
+
 #endif /* _ATMEL_SAM_SOC_PMC_H_ */
