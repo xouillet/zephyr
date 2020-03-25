@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2019-2020 Gerson Fernando Budke
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <atmel/sam4e16c.dtsi>
+
+/ {
+	model = "Byond MegaZ0rd with Atmel SAM4E16C SoC";
+	compatible = "byond,megaz0rd", "atmel,sam4e16c", "atmel,sam4e";
+
+	aliases {
+		i2c-0 = &twi0;
+		led0 = &red_led_1;
+		led1 = &orange_led_1;
+		wdog = &wdt;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		red_led_1: led_1 {
+			gpios = <&pioa 19 GPIO_ACTIVE_HIGH>;
+			label = "LED 1";
+		};
+		orange_led_1: led_2 {
+			gpios = <&pioa 20 GPIO_ACTIVE_HIGH>;
+			label = "LED 2";
+		};
+	};
+};
+
+&cpu0 {
+	clock-frequency = <120000000>;
+};
+
+&twi0 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+};
+
+&uart0 {
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&usart0 {
+	status = "okay";
+	current-speed = <115200>;
+
+	pinctrl-0 = <&pb0c_usart0_rxd0 &pb1c_usart0_txd0>;
+};
+
+&gmac {
+	status = "okay";
+	zephyr,random-mac-address;
+};
+
+&wdt {
+	status = "okay";
+};

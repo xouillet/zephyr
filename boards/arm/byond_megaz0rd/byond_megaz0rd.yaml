@@ -1,0 +1,15 @@
+identifier: byond_megaz0rd
+name: Byond MegaZ0rd
+type: mcu
+arch: arm
+ram: 128
+flash: 1024
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - netif:eth
+  - gpio
+  - spi
+  - watchdog
