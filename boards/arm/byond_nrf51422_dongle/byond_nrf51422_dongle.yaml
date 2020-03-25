@@ -1,0 +1,20 @@
+identifier: byond_nrf51422_dongle
+name: BYOND_NRF51422_DONGLE
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 32
+supported:
+  - adc
+  - ble
+  - nvs
+  - pwm
+  - spi
+  - watchdog
+  - counter
+testing:
+  ignore_tags:
+    - net

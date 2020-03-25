@@ -1,0 +1,6 @@
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_BYOND_NRF51422_DONGLE
+	bool "Byond NRF51422 dongle"
+	depends on SOC_NRF51822_QFAC
