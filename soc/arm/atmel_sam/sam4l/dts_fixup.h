@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Gerson Fernando Budke
+ * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,6 +13,9 @@
 /* SoC level DTS fixup file */
 
 #define DT_NUM_IRQ_PRIO_BITS              DT_ARM_V7M_NVIC_E000E100_ARM_NUM_IRQ_PRIORITY_BITS
+#define DT_NUM_MPU_REGIONS                DT_ARM_ARMV7M_MPU_E000ED90_ARM_NUM_MPU_REGIONS
+
+#define DT_FLASH_DEV_NAME                 DT_INST_0_SOC_NV_FLASH_LABEL
 
 #define DT_GPIO_SAM_PORTA_LABEL           DT_ATMEL_SAM_GPIO_400E1000_LABEL
 #define DT_GPIO_SAM_PORTA_BASE_ADDRESS    DT_ATMEL_SAM_GPIO_400E1000_BASE_ADDRESS

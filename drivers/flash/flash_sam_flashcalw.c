@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018 Aurelien Jarno
+ * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,7 +14,7 @@
 
 #define LOG_LEVEL CONFIG_FLASH_LOG_LEVEL
 #include <logging/log.h>
-LOG_MODULE_REGISTER(flash_sam0);
+LOG_MODULE_REGISTER(flashcalw_sam);
 
 /*
  * The SAM flash memories use very different granularity for writing,
@@ -27,13 +28,14 @@ LOG_MODULE_REGISTER(flash_sam0);
 
 
 /*
- * We only use block mode erases. The datasheet gives a maximum erase time
- * of 200ms for a 8KiB block.
+ * There is only page mode erases. The datasheet gives a maximum full chip
+ * erase time of 304ms with fCLK_AHB = 115kHz
  */
-#define SAM_FLASH_TIMEOUT (K_MSEC(220))
+#define SAM_FLASH_TIMEOUT (K_MSEC(350))
 
 struct flash_sam_dev_cfg {
-	Efc *regs;
+	Flashcalw *regs;
+	Hcache *cache;
 };
 
 struct flash_sam_dev_data {
@@ -74,7 +76,7 @@ static bool flash_sam_valid_range(struct device *dev, off_t offset, size_t len)
 /* Convert an offset in the flash into a page number */
 static off_t flash_sam_get_page(off_t offset)
 {
-	return offset / IFLASH_PAGE_SIZE;
+	return offset / FLASH_PAGE_SIZE;
 }
 
 /*
@@ -83,24 +85,27 @@ static off_t flash_sam_get_page(off_t offset)
  */
 static int flash_sam_wait_ready(struct device *dev)
 {
-	Efc *const efc = DEV_CFG(dev)->regs;
+	Flashcalw *const flashcalw = DEV_CFG(dev)->regs;
 
 	u64_t timeout_time = k_uptime_get() + SAM_FLASH_TIMEOUT;
 	u32_t fsr;
 
 	do {
-		fsr = efc->EEFC_FSR;
+		fsr = flashcalw->FSR;
 
-		/* Flash Error Status */
+		/* Flash Error Status
 		if (fsr & EEFC_FSR_FLERR) {
 			return -EIO;
 		}
+		*/
 		/* Flash Lock Error Status */
-		if (fsr & EEFC_FSR_FLOCKE) {
+		if (fsr & FLASHCALW_FSR_LOCKE) {
+			LOG_DBG("Wait ready: FLASHCALW_FSR_LOCKE");
 			return -EACCES;
 		}
 		/* Flash Command Error */
-		if (fsr & EEFC_FSR_FCMDE) {
+		if (fsr & FLASHCALW_FSR_PROGE) {
+			LOG_DBG("Wait ready: FLASHCALW_FSR_PROGE");
 			return -EINVAL;
 		}
 
@@ -111,9 +116,10 @@ static int flash_sam_wait_ready(struct device *dev)
 
 		/* Check for timeout */
 		if (k_uptime_get() > timeout_time) {
+			LOG_DBG("Wait ready: ETIMEDOUT");
 			return -ETIMEDOUT;
 		}
-	} while (!(fsr & EEFC_FSR_FRDY));
+	} while (!(fsr & FLASHCALW_FSR_FRDY));
 
 	return 0;
 }
@@ -122,11 +128,22 @@ static int flash_sam_wait_ready(struct device *dev)
 static int flash_sam_write_page(struct device *dev, off_t offset,
 				const void *data, size_t len)
 {
-	Efc *const efc = DEV_CFG(dev)->regs;
+	int rc;
+	Flashcalw *const flashcalw = DEV_CFG(dev)->regs;
 	const u32_t *src = data;
 	u32_t *dst = (u32_t *)((u8_t *)CONFIG_FLASH_BASE_ADDRESS + offset);
 
 	LOG_DBG("offset = 0x%lx, len = %zu", (long)offset, len);
+
+	/* Clear page Buffer */
+	flashcalw->FCMD = FLASHCALW_FCMD_KEY_KEY |
+			  FLASHCALW_FCMD_CMD_CPB;
+
+	rc = flash_sam_wait_ready(dev);
+	if (rc < 0) {
+		LOG_DBG("Clear Page Buffer error");
+		return rc;
+	}
 
 	/* We need to copy the data using 32-bit accesses */
 	for (; len > 0; len -= sizeof(*src)) {
@@ -135,9 +152,8 @@ static int flash_sam_write_page(struct device *dev, off_t offset,
 	__DSB();
 
 	/* Trigger the flash write */
-	efc->EEFC_FCR = EEFC_FCR_FKEY_PASSWD |
-			EEFC_FCR_FARG(flash_sam_get_page(offset)) |
-			EEFC_FCR_FCMD_WP;
+	flashcalw->FCMD = FLASHCALW_FCMD_KEY_KEY |
+			  FLASHCALW_FCMD_CMD_WP;
 	__DSB();
 
 	/* Wait for the flash write to finish */
@@ -155,6 +171,7 @@ static int flash_sam_write(struct device *dev, off_t offset,
 
 	/* Check that the offset is within the flash */
 	if (!flash_sam_valid_range(dev, offset, len)) {
+		LOG_DBG("Error: flash_sam_valid_range");
 		return -EINVAL;
 	}
 
@@ -167,9 +184,11 @@ static int flash_sam_write(struct device *dev, off_t offset,
 	 * block size.
 	 */
 	if ((offset % DT_INST_0_SOC_NV_FLASH_WRITE_BLOCK_SIZE) != 0) {
+		LOG_DBG("Error offset: WRITE_BLOCK_SIZE");
 		return -EINVAL;
 	}
 	if ((len % DT_INST_0_SOC_NV_FLASH_WRITE_BLOCK_SIZE) != 0) {
+		LOG_DBG("Error len: WRITE_BLOCK_SIZE");
 		return -EINVAL;
 	}
 
@@ -177,6 +196,7 @@ static int flash_sam_write(struct device *dev, off_t offset,
 
 	rc = flash_sam_wait_ready(dev);
 	if (rc < 0) {
+		LOG_DBG("%s: Wait ready", __func__);
 		return rc;
 	}
 
@@ -184,11 +204,12 @@ static int flash_sam_write(struct device *dev, off_t offset,
 		size_t eop_len, write_len;
 
 		/* Maximum size without crossing a page */
-		eop_len = -(offset | ~(IFLASH_PAGE_SIZE - 1));
+		eop_len = -(offset | ~(FLASH_PAGE_SIZE - 1));
 		write_len = MIN(len, eop_len);
 
 		rc = flash_sam_write_page(dev, offset, data8, write_len);
 		if (rc < 0) {
+			LOG_DBG("Erro: flash_sam_write_page");
 			goto done;
 		}
 
@@ -210,6 +231,7 @@ static int flash_sam_read(struct device *dev, off_t offset, void *data,
 	LOG_DBG("offset = 0x%lx, len = %zu", (long)offset, len);
 
 	if (!flash_sam_valid_range(dev, offset, len)) {
+		LOG_DBG("Erro: %s", __func__);
 		return -EINVAL;
 	}
 
@@ -218,16 +240,16 @@ static int flash_sam_read(struct device *dev, off_t offset, void *data,
 	return 0;
 }
 
-/* Erase a single 8KiB block */
+/* Erase a single page 512 bytes */
 static int flash_sam_erase_block(struct device *dev, off_t offset)
 {
-	Efc *const efc = DEV_CFG(dev)->regs;
+	Flashcalw *const flashcalw = DEV_CFG(dev)->regs;
 
 	LOG_DBG("offset = 0x%lx", (long)offset);
 
-	efc->EEFC_FCR = EEFC_FCR_FKEY_PASSWD |
-			EEFC_FCR_FARG(flash_sam_get_page(offset) | 2) |
-			EEFC_FCR_FCMD_EPA;
+	flashcalw->FCMD = FLASHCALW_FCMD_KEY_KEY |
+			  FLASHCALW_FCMD_PAGEN(flash_sam_get_page(offset)) |
+			  FLASHCALW_FCMD_CMD_EP;
 	__DSB();
 
 	return flash_sam_wait_ready(dev);
@@ -236,6 +258,7 @@ static int flash_sam_erase_block(struct device *dev, off_t offset)
 /* Erase multiple blocks */
 static int flash_sam_erase(struct device *dev, off_t offset, size_t len)
 {
+	Hcache *const hcache = DEV_CFG(dev)->cache;
 	int rc = 0;
 	off_t i;
 
@@ -274,10 +297,11 @@ done:
 	flash_sam_sem_give(dev);
 
 	/*
-	 * Invalidate the cache addresses corresponding to the erased blocks,
-	 * so that they really appear as erased.
+	 * Invalidate all cache addresses so that they really appear as erased.
 	 */
-	SCB_InvalidateDCache_by_Addr((void *)(CONFIG_FLASH_BASE_ADDRESS + offset), len);
+	if (hcache->SR & HCACHE_SR_CSTS) {
+		hcache->MAINT0 = HCACHE_MAINT0_INVALL;
+	}
 
 	return rc;
 }
@@ -285,24 +309,8 @@ done:
 /* Enable or disable the write protection */
 static int flash_sam_write_protection(struct device *dev, bool enable)
 {
-	Efc *const efc = DEV_CFG(dev)->regs;
-	int rc = 0;
-
-	flash_sam_sem_take(dev);
-
-	if (enable) {
-		rc = flash_sam_wait_ready(dev);
-		if (rc < 0) {
-			goto done;
-		}
-		efc->EEFC_WPMR = EEFC_WPMR_WPKEY_PASSWD | EEFC_WPMR_WPEN;
-	} else {
-		efc->EEFC_WPMR = EEFC_WPMR_WPKEY_PASSWD;
-	}
-
-done:
-	flash_sam_sem_give(dev);
-	return rc;
+	LOG_DBG("flash_sam_write_protection");
+	return 0;
 }
 
 #if CONFIG_FLASH_PAGE_LAYOUT
@@ -345,7 +353,8 @@ static const struct flash_driver_api flash_sam_api = {
 };
 
 static const struct flash_sam_dev_cfg flash_sam_cfg = {
-	.regs = (Efc *)DT_FLASH_DEV_BASE_ADDRESS,
+	.regs = HFLASHC,
+	.cache = HCACHE,
 };
 
 static struct flash_sam_dev_data flash_sam_data;

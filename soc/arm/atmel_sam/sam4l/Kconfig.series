@@ -1,5 +1,5 @@
 # Atmel SAM4L MCU series
-# Copyright (c) 2020 Gerson Fernando Budke
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_SERIES_SAM4L
@@ -9,6 +9,8 @@ config SOC_SERIES_SAM4L
 	select CPU_CORTEX_M_HAS_DWT
 	select SOC_FAMILY_SAM
 	select ASF
+	select CPU_HAS_ARM_MPU
+	select ARM_MPU
 	help
 	  Enable support for Atmel SAM4L Cortex-M4 microcontrollers.
 	  Part No.: SAM4LS8C, SAM4LS8B, SAM4LS8A, SAM4LS4C, SAM4LS4B,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Gerson Fernando Budke
+ * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,8 @@
 
 #ifndef _ATMEL_SAM4L_SOC_H_
 #define _ATMEL_SAM4L_SOC_H_
+
+#include <sys/util.h>
 
 #ifndef _ASMLANGUAGE
 
@@ -59,6 +61,9 @@
 #include "soc_pinmap.h"
 #include "../common/soc_pmc.h"
 #include "../common/soc_gpio.h"
+
+/* Add include for DTS generated information */
+#include <devicetree.h>
 
 #endif /* !_ASMLANGUAGE */
 
