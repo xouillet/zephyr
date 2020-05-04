@@ -75,6 +75,20 @@
 	status = "okay";
 };
 
+&i2c1 {
+	status = "okay";
+
+	eeprom0: eeprom@57 {
+		compatible = "atmel,at24";
+		reg = <0x57>;
+		label = "EEPROM_WM400_CAPE";
+		size = <32768>;
+		pagesize = <64>;
+		address-width = <16>;
+		timeout = <5>;
+	};
+};
+
 &usart0 {
 	current-speed = <115200>;
 	pinctrl-0 = <&pb14a_usart0_rxd0 &pb15a_usart0_txd0>;
