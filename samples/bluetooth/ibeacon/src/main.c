@@ -71,4 +71,23 @@ void main(void)
 	if (err) {
 		printk("Bluetooth init failed (err %d)\n", err);
 	}
+
+	do {
+		k_sleep(K_MSEC(200));
+
+		err = bt_le_adv_stop();
+		if (err) {
+			printk("Advertising failed to stop (err %d)\n", err);
+			return;
+		}
+
+		k_sleep(K_MSEC(2000));
+
+		err = bt_le_adv_start(BT_LE_ADV_NCONN, ad, ARRAY_SIZE(ad),
+				      NULL, 0);
+		if (err) {
+			printk("Advertising failed to start (err %d)\n", err);
+			return;
+		}
+	} while (1);
 }
