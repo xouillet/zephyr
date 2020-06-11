@@ -59,9 +59,16 @@ static int usart_sam_init(struct device *dev)
 	const struct usart_sam_dev_cfg *const cfg = DEV_CFG(dev);
 	struct usart_sam_dev_data *const dev_data = DEV_DATA(dev);
 	Usart *const usart = cfg->regs;
+	uint32_t busfreq;
 
 	/* Enable USART clock in PMC */
 	soc_pmc_peripheral_enable(cfg->periph_id);
+
+#if defined(CONFIG_SOC_SERIES_SAM4L)
+	busfreq = soc_pmc_peripheral_get_clock_hz(cfg->periph_id);
+#else
+	busfreq = SOC_ATMEL_SAM_MCK_FREQ_HZ;
+#endif
 
 	/* Connect pins to the peripheral */
 	soc_gpio_configure(&cfg->pin_rx);
@@ -103,8 +110,7 @@ static int usart_sam_init(struct device *dev)
 		       | US_MR_CHMODE_NORMAL;
 
 	/* Set baud rate */
-	retval = baudrate_set(usart, dev_data->baud_rate,
-			      SOC_ATMEL_SAM_MCK_FREQ_HZ);
+	retval = baudrate_set(usart, dev_data->baud_rate, busfreq);
 	if (retval != 0) {
 		return retval;
 	}
