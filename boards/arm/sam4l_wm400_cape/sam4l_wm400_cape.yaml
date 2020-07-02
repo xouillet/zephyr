@@ -12,3 +12,4 @@ supported:
   - ieee802154
   - spi
   - usart
+  - usb_device
