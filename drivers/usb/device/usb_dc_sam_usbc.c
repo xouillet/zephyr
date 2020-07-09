@@ -23,7 +23,19 @@ static uint32_t num_pins = ATMEL_SAM_DT_NUM_PINS(0);
 static struct soc_gpio_pin pins[] = ATMEL_SAM_DT_PINS(0);
 
 #if defined(CONFIG_USB_DRIVER_LOG_LEVEL_DBG)
-static uint32_t dev_ep_sta_dbg[3][NUM_OF_EP_MAX];
+static uint32_t dev_ep_sta_dbg[2][NUM_OF_EP_MAX];
+
+static void usb_dc_sam_usbc_clean_sta_dbg(void)
+{
+	int i;
+
+	for (i = 0; i < NUM_OF_EP_MAX; i++) {
+		dev_ep_sta_dbg[0][i] = 0;
+		dev_ep_sta_dbg[1][i] = 0;
+	}
+}
+#else
+#define usb_dc_sam_usbc_clean_sta_dbg()
 #endif
 
 static int usb_dc_sam_usbc_ep_curr_bank(int ep_idx)
@@ -202,8 +214,47 @@ static void usb_dc_ep0_isr(void)
 
 	if (sr & USBC_UESTA0_RXSTPI) {
 
+		regs->UESTACLR[0] = USBC_UESTA0CLR_NAKINIC;
+		regs->UESTACLR[0] = USBC_UESTA0CLR_NAKOUTIC;
+
+		if (sr & USBC_UESTA0_CTRLDIR) {
+			/** IN Package */
+			regs->UECONSET[0] = USBC_UECON0SET_NAKOUTES;
+		} else {
+			/** OUT Package */
+			regs->UECONSET[0] = USBC_UECON0SET_RXOUTES;
+			regs->UECONSET[0] = USBC_UECON0SET_NAKINES;
+		}
+
 		/* SETUP data received */
 		dev_data.ep_data[0].cb_out(USB_EP_DIR_OUT, USB_DC_EP_SETUP);
+
+		return;
+	}
+
+	if (sr & USBC_UESTA0_NAKINI) {
+
+		/** Start Control Write State */
+
+		regs->UESTACLR[0] = USBC_UESTA0CLR_NAKINIC;
+		regs->UECONCLR[0] = USBC_UECON0CLR_NAKINEC;
+		regs->UECONCLR[0] = USBC_UECON0CLR_RXOUTEC;
+
+		dev_data.ep_data[0].cb_in(USB_EP_DIR_IN, USB_DC_EP_DATA_IN);
+
+		return;
+	}
+
+	if (sr & USBC_UESTA0_NAKOUTI) {
+
+		/** Start Control Read State */
+
+		regs->UESTACLR[0] = USBC_UESTA0CLR_NAKOUTIC;
+		regs->UECONCLR[0] = USBC_UECON0CLR_NAKOUTEC;
+		regs->UECONCLR[0] = USBC_UECON0CLR_TXINEC;
+
+		/** Wait OUT State */
+		regs->UECONSET[0] = USBC_UECON0SET_RXOUTES;
 
 		return;
 	}
@@ -218,6 +269,11 @@ static void usb_dc_ep0_isr(void)
 	    (regs->UECON[0] & USBC_UECON0_TXINE)) {
 
 		regs->UECONCLR[0] = USBC_UECON0CLR_TXINEC;
+
+		if (sr & USBC_UESTA0_CTRLDIR) {
+			/** Finish Control Write State */
+			return;
+		}
 
 		/* IN (to host) transmit complete */
 		dev_data.ep_data[0].cb_in(USB_EP_DIR_IN, USB_DC_EP_DATA_IN);
@@ -336,6 +392,8 @@ static void usb_dc_sam_usbc_isr(void)
 		}
 
 		dev_data.status_cb(USB_DC_RESET, NULL);
+
+		usb_dc_sam_usbc_clean_sta_dbg();
 
 		return;
 	}
@@ -869,8 +927,8 @@ int usb_dc_ep_write(uint8_t ep, const uint8_t *data,
 		 * data, and re-enable the interrupts to trigger an interrupt
 		 * at the end of the transfer.
 		 */
-		regs->UESTACLR[ep_idx] = USBC_UESTA0CLR_TXINIC;
-		regs->UECONSET[ep_idx] = USBC_UECON0SET_TXINES;
+		regs->UESTACLR[0] = USBC_UESTA0CLR_TXINIC;
+		regs->UECONSET[0] = USBC_UECON0SET_TXINES;
 	} else {
 		/*
 		 * Other endpoint types: clear the FIFO control flag to send
