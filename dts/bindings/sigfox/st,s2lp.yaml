@@ -1,0 +1,120 @@
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: ST Ultra-low power, high performance, sub-1 GHz transceiver
+
+compatible: "st,s2lp"
+
+include: spi-device.yaml
+
+properties:
+    sdn-gpios:
+      type: phandle-array
+      required: true
+      description: Shutdown signal. SDN should be level low all time, except
+        shutdown mode.
+
+    dio0-function:
+      type: int
+      required: false
+      default: 0x0A
+      description: General purpose in/out pin 0 function. This s2-lp pin can
+        be routed to dio0-gpios handle. Default VDD.
+
+    dio0-gpios:
+      type: phandle-array
+      required: false
+      description: General purpose in/out pin 0.
+
+    dio1-function:
+      type: int
+      required: false
+      default: 0xA2
+      description: General purpose in/out pin 1 function. This s2-lp pin can
+        be routed to dio1-gpios handle. Default VDD.
+
+    dio1-gpios:
+      type: phandle-array
+      required: false
+      description: General purpose in/out pin 1.
+
+    dio2-function:
+      type: int
+      required: false
+      default: 0xA2
+      description: General purpose in/out pin 2 function. This s2-lp pin can
+        be routed to dio2-gpios handle. Default VDD.
+
+    dio2-gpios:
+      type: phandle-array
+      required: false
+      description: General purpose in/out pin 2.
+
+    dio3-function:
+      type: int
+      required: false
+      default: 0xA2
+      description: General purpose in/out pin 3 function. This s2-lp pin can
+        be routed to dio3-gpios handle. Default VDD.
+
+    dio3-gpios:
+      type: phandle-array
+      required: false
+      description: General purpose in/out pin 3.
+
+    trx-clock-frequency:
+      type: int
+      required: true
+      description: Transceiver input clock frequency
+
+    trx-start-duration:
+      type: int
+      required: false
+      default: 18
+      description: Transceiver modulation ramp start duration
+
+    trx-fdev-neg:
+      type: int
+      required: false
+      default: 0x81
+      description: Transceiver frequency deviation negative value
+
+    trx-fdev-pos:
+      type: int
+      required: false
+      default: 0x7f
+      description: Transceiver frequency deviation positive value
+
+    trx-min-power:
+      type: int
+      required: false
+      default: 220
+      description: Transceiver min output power
+
+    trx-max-power:
+      type: int
+      required: false
+      default: 1
+      description: Transceiver max output power
+
+    trx-gain-f1:
+      type: int
+      required: false
+      default: 0
+      description: Transceiver modulation ramp gain factor 1
+
+    trx-gain-f2:
+      type: int
+      required: false
+      default: 0
+      description: Transceiver modulation ramp gain factor 2
+
+    trx-ext-pa:
+      type: boolean
+      required: false
+      description: Transceiver should enable external PA at TX
+
+    trx-ext-lna:
+      type: boolean
+      required: false
+      description: Transceiver should enable external LNA at RX
