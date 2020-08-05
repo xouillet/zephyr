@@ -1,0 +1,45 @@
+#
+# Copyright (c) 2020 Gerson Fernando Budke
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Top-level configuration file for SIGFOX drivers.
+
+menuconfig SIGFOX
+	bool "Sigfox support [EXPERIMENTAL]"
+	select TINYCRYPT
+	select TINYCRYPT_AES
+	select TINYCRYPT_AES_CBC
+	help
+	  Include Sigfox drivers in the system configuration.
+
+if SIGFOX
+
+module = SIGFOX
+module-str = sigfox
+source "subsys/logging/Kconfig.template.log_config"
+
+config SIGFOX_MONARCH_FEATURE
+	bool "Sigfox Monarc API support"
+	help
+	  The Sigfox Monarch feature makes IoT devices aware of the local
+	  radio configuration (RC) to use. A single device can thus lawfully
+	  communicate on the Sigfox network even when moving between countries
+	  with different radio regulations.
+	  Monarch is transparent and simple since the device automatically
+	  chooses the appropriate radio configuration without human
+	  intervention.
+
+config SIGFOX_API_ADDONS
+	bool "Sigfox Add-On API support"
+	help
+	  Enable Sigfox Add-On functions
+
+config SIGFOX_INIT_PRIO
+	int "Sigfox initialization priority"
+	default 80
+	help
+	  System initialization priority for Sigfox drivers.
+
+endif # SIGFOX
