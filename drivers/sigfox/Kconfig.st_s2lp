@@ -1,0 +1,60 @@
+#
+# Copyright (c) 2020 Gerson Fernando Budke
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig SIGFOX_S2LP
+	bool "ST S2-LP driver"
+	select SPI
+	select GPIO
+	help
+	  Enable Sigfox driver for ST S2-LP.
+
+if SIGFOX_S2LP
+
+module = SIGFOX_S2LP
+module-str = sigfox_s2lp
+source "subsys/logging/Kconfig.template.log_config"
+
+config SIGFOX_S2LP_TX_BY_FIFO_EMPTY_DIO
+	bool "Enable ISR dio to be used as FIFO empty flag on TX"
+	default y
+	help
+	  This enable driver to do an spin lock at TX phase. This is the
+	  recommended way to use. It is mandatory use on slow MCUs that can't
+	  react fast enought to receive an interrupt, read ISR flags, and
+	  process next TX tick.
+
+	  CAUTION: When using any kind of log TX can be severe afected by this
+	  option.
+
+config SIGFOX_S2LP_ERRATA_SDO_PIN_NOT_TRI_STATED
+	bool "S2-LPQTR cut 2.1 SDO pin not tri-stated"
+	default y
+	help
+	  Enable workaround for S2-LPQTR cut 2.1 SDO pin not tri-stated. Each
+	  time an application needs to access another SPI slave, turn the
+	  S2-LP off via the SDN pin.
+
+config SIGFOX_S2LP_RX_STACK_SIZE
+	int "Driver's internal RX thread stack size"
+	default 512
+	help
+	  This option sets the driver's stack size for its internal RX thread.
+	  The default value should be sufficient, but in case it proves to be
+	  a too little one, this option makes it easy to play with the size.
+
+config SIGFOX_S2LP_HAS_TXCO
+	bool "Indicate that transceiver clock source is a TCXO oscilator"
+
+config SIGFOX_S2LP_HAS_EXTERNAL_PA_LNA
+	bool "Indicate that transceiver is connected to an external PA/LNA"
+
+config SIGFOX_S2LP_CUSTOM_EXTERNAL_PA_LNA
+	bool "Custom transceiver external PA/LNA handle"
+	depends on SIGFOX_S2LP_HAS_EXTERNAL_PA_LNA
+	help
+	  This option enable custom PA/LNA handling
+
+endif

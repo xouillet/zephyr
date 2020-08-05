@@ -42,4 +42,6 @@ config SIGFOX_INIT_PRIO
 	help
 	  System initialization priority for Sigfox drivers.
 
+source "drivers/sigfox/Kconfig.st_s2lp"
+
 endif # SIGFOX
