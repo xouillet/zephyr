@@ -1,0 +1,8 @@
+common:
+   tags: sigfox
+sample:
+   description: Demonstration of Sigfox Send functionality
+   name: Sigfox Send Sample
+tests:
+   sample.driver.sigfox.send:
+     platform_whitelist: frdm_k64f nucleo_f767zi nucleo_l053r8 sam_v71_xult

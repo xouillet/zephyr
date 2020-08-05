@@ -1,0 +1,28 @@
+# Copyright (c) 2020 Gerson Fernando Budke
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Sigfox Send Sample"
+
+config SIGFOX_RADIO_API_VERSION
+	string "SIGFOX RF API Version"
+	default "v2.7.0"
+
+config SIGFOX_MCU_API_VERSION
+	string "SIGFOX MCU API Version"
+	default "v2.3.7"
+
+config SIGFOX_ST_RETRIEVER
+	bool "Build with ST Retriever library"
+
+config SIGFOX_SAMPLE_USE_LEDS
+	bool "Build application with LED support"
+	default y
+
+module = SIGFOX_SEND
+module-str = Log level for Sigfox Send sample
+module-help = Enables logging for Sigfox Send sample code.
+source "subsys/logging/Kconfig.template.log_config"
+
+endmenu
+
+source "Kconfig.zephyr"

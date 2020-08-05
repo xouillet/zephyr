@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	aliases {
+		sigfox0 = &sigfox0;
+	};
+};
+
+&spi0 {
+	/**
+	 * PD0  - s2-lp
+	 * PC12 - eeprom
+	 */
+	cs-gpios = <&gpiod 0  GPIO_ACTIVE_LOW>,
+		   <&gpioc 12 GPIO_ACTIVE_LOW>;
+
+	/* STEVAL-FKI868V2 */
+	sigfox0: sigfox@0 {
+		compatible = "st,s2lp";
+		reg = <0x0>;
+		label = "sigfox_0";
+		spi-max-frequency = <8000000>;
+
+		sdn-gpios = <&gpioc 3 GPIO_ACTIVE_HIGH>;
+		/* MCU gpio: in,irq line */
+		dio0-gpios = <&gpiob 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		/* s2-lp: out -> nIRQ */
+		dio0-function = <0x02>;
+
+		trx-clock-frequency = <50000000>;
+
+		status = "okay";
+	};
+
+	eeprom1: eeprom@1 {
+		compatible = "atmel,at25";
+		reg = <0x1>;
+		label = "M95640";
+		size = <8192>;
+		pagesize = <32>;
+		address-width = <16>;
+		timeout = <10>;
+		spi-max-frequency = <10000000>;
+
+		status = "okay";
+	};
+};

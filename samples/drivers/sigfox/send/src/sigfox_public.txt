@@ -1,0 +1,111 @@
+/*
+ * Copyright (c) 2020 Gerson Fernando Budke
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <sigfox_types.h>
+#include <sigfox_api.h>
+
+/**
+ * SIGFOX PUBLIC API
+ */
+
+sfx_error_t SIGFOX_API_open(sfx_rc_t* rc)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_close(void)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_send_frame(sfx_u8* customer_data,
+                                  sfx_u8 customer_data_length,
+                                  sfx_u8* customer_response,
+                                  sfx_u8 tx_mode,
+                                  sfx_bool initiate_downlink_flag)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_send_bit(sfx_bool bit_value,
+                                sfx_u8* customer_response,
+                                sfx_u8 tx_mode,
+                                sfx_bool initiate_downlink_flag)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_send_outofband(sfx_oob_enum_t oob_type)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_set_std_config(sfx_u32 config_words[3],
+                                      sfx_bool timer_enable)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_start_continuous_transmission(
+	sfx_u32 frequency,
+	sfx_modulation_type_t type)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_stop_continuous_transmission(void)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_send_test_frame(sfx_u32 frequency,
+				       sfx_u8* customer_data,
+				       sfx_u8 customer_data_length,
+				       sfx_bool initiate_downlink_flag)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_receive_test_frame(sfx_u32 frequency,
+					  sfx_authentication_mode_t mode,
+					  sfx_u8* buffer,
+					  sfx_u8 timeout,
+					  sfx_s16* rssi)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_get_version(sfx_u8** version,
+				   sfx_u8* size,
+				   sfx_version_type_t type)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_get_info(sfx_u8* returned_info)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_get_device_id(sfx_u8* dev_id)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_get_initial_pac(sfx_u8* initial_pac)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_switch_public_key(sfx_bool use_public_key)
+{
+	return SFX_ERR_NONE;
+}
+
+sfx_error_t SIGFOX_API_set_rc_sync_period(sfx_u16 rc_sync_period)
+{
+	return SFX_ERR_NONE;
+}

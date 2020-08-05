@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2020 Gerson Fernando Budke
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <sigfox_types.h>
+#include <sigfox_monarch_api.h>
+#include <sigfox_api.h>
+
+/**
+ * SIGFOX MONARCH PUBLIC API
+ */
+
+sfx_error_t SIGFOX_MONARCH_API_execute_rc_scan(
+	sfx_u8 rc_capabilities_bit_mask,
+	sfx_u16 timer, sfx_timer_unit_enum_t unit,
+	sfx_u8 (* app_callback_handler)(sfx_u8 rc_bit_mask, sfx_s16 rssi))
+{
+	return SFX_ERR_NONE;
+}
+sfx_error_t SIGFOX_MONARCH_API_stop_rc_scan(void)
+{
+	return SFX_ERR_NONE;
+}
