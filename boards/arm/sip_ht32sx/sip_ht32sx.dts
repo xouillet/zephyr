@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <st/l0/stm32l053X8.dtsi>
+
+/ {
+	model = "HT-Micron iMCP HT32SX SIP";
+	compatible = "htm,ht32sx";
+
+	chosen {
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led_1: led_1 {
+			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+			label = "User LD1";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		user_button: button {
+			label = "User";
+			gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	aliases {
+		led0 = &led_1;
+		sw0 = &user_button;
+
+		eeprom-0 = &eeprom;
+		sigfox0 = &sigfox0;
+	};
+};
+
+/* GPIO not available */
+&gpioc {status = "disabled";};
+&gpiod {status = "disabled";};
+&gpioh {status = "disabled";};
+
+&usart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&usart2 {
+	current-speed = <115200>;
+};
+
+&i2c1 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+};
+
+&spi1 {
+	status = "okay";
+
+	dmas = <&dma1 3 1 0x28440 0x04>,
+	       <&dma1 2 1 0x28480 0x04>;
+	dma-names = "tx", "rx";
+
+	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW>;
+
+	sigfox0: sigfox@0 {
+		status = "okay";
+
+		compatible = "st,s2lp";
+		reg = <0x0>;
+		label = "sigfox_0";
+		spi-max-frequency = <7000000>;
+
+		trx-clock-frequency = <50000000>;
+		sdn-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
+		dio3-gpios = <&gpiob 2 GPIO_ACTIVE_LOW>;
+		dio3-function = <0x02>;
+
+		trx-ext-pa;
+		trx-ext-lna;
+	};
+};
+
+&dma1 {
+	status = "okay";
+};
+
+&eeprom {
+	status = "okay";
+};

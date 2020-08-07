@@ -1,0 +1,16 @@
+identifier: sip_ht32sx
+name: HT-Micron iMCP HT32SX SIP
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - gpio
+  - i2c
+  - spi
+  - eeprom
+  - sigfox
+ram: 8
+flash: 64
