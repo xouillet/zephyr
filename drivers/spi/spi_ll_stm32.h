@@ -39,7 +39,6 @@ struct spi_stm32_data {
 	struct device *dev_dma_rx;
 	struct stream dma_rx;
 	struct stream dma_tx;
-	size_t dma_segment_len;
 #endif
 };
 
