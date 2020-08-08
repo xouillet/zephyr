@@ -724,6 +724,10 @@ static int transceive_dma(struct device *dev,
 		while (spi_stm32_dma_transfer_ongoing(data) == 1) {
 		}
 
+		/* wait until TX buffer is really empty */
+		while (LL_SPI_IsActiveFlag_TXE(spi) == 0) {
+		}
+
 		if ((data->ctx.tx_count <= 1) && (data->ctx.rx_count <= 1)) {
 			/* if it was the last count, then we are done */
 			break;
