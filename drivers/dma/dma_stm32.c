@@ -425,7 +425,7 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_configure(struct device *dev, uint32_t id,
 			config->dma_slot = 0;
 		}
 	}
-	DMA_InitStruct.Channel = table_ll_channel[config->dma_slot];
+	DMA_InitStruct.Channel = dma_stm32_slot_to_channel(config->dma_slot);
 
 	DMA_InitStruct.FIFOThreshold = stm32_dma_get_fifo_threshold(
 					config->head_block->fifo_mode_control);
@@ -451,18 +451,18 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_configure(struct device *dev, uint32_t id,
 	 */
 	DMA_InitStruct.PeriphRequest = config->dma_slot;
 #endif
-	LL_DMA_Init(dma, table_ll_stream[id], &DMA_InitStruct);
+	LL_DMA_Init(dma, dma_stm32_id_to_stream(id), &DMA_InitStruct);
 
-	LL_DMA_EnableIT_TC(dma, table_ll_stream[id]);
+	LL_DMA_EnableIT_TC(dma, dma_stm32_id_to_stream(id));
 	/* Half-Transfer irq is not handled */
 
 #if defined(CONFIG_DMA_STM32_V1)
 	if (DMA_InitStruct.FIFOMode == LL_DMA_FIFOMODE_ENABLE) {
-		LL_DMA_EnableFifoMode(dma, table_ll_stream[id]);
-		LL_DMA_EnableIT_FE(dma, table_ll_stream[id]);
+		LL_DMA_EnableFifoMode(dma, dma_stm32_id_to_stream(id));
+		LL_DMA_EnableIT_FE(dma, dma_stm32_id_to_stream(id));
 	} else {
-		LL_DMA_DisableFifoMode(dma, table_ll_stream[id]);
-		LL_DMA_DisableIT_FE(dma, table_ll_stream[id]);
+		LL_DMA_DisableFifoMode(dma, dma_stm32_id_to_stream(id));
+		LL_DMA_DisableIT_FE(dma, dma_stm32_id_to_stream(id));
 	}
 #endif
 	return ret;
@@ -505,23 +505,23 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_reload(struct device *dev, uint32_t id,
 
 	switch (stream->direction) {
 	case MEMORY_TO_PERIPHERAL:
-		LL_DMA_SetMemoryAddress(dma, table_ll_stream[id], src);
-		LL_DMA_SetPeriphAddress(dma, table_ll_stream[id], dst);
+		LL_DMA_SetMemoryAddress(dma, dma_stm32_id_to_stream(id), src);
+		LL_DMA_SetPeriphAddress(dma, dma_stm32_id_to_stream(id), dst);
 		break;
 	case MEMORY_TO_MEMORY:
 	case PERIPHERAL_TO_MEMORY:
-		LL_DMA_SetPeriphAddress(dma, table_ll_stream[id], src);
-		LL_DMA_SetMemoryAddress(dma, table_ll_stream[id], dst);
+		LL_DMA_SetPeriphAddress(dma, dma_stm32_id_to_stream(id), src);
+		LL_DMA_SetMemoryAddress(dma, dma_stm32_id_to_stream(id), dst);
 		break;
 	default:
 		return -EINVAL;
 	}
 
 	if (stream->source_periph) {
-		LL_DMA_SetDataLength(dma, table_ll_stream[id],
+		LL_DMA_SetDataLength(dma, dma_stm32_id_to_stream(id),
 				     size / stream->src_size);
 	} else {
-		LL_DMA_SetDataLength(dma, table_ll_stream[id],
+		LL_DMA_SetDataLength(dma, dma_stm32_id_to_stream(id),
 				     size / stream->dst_size);
 	}
 
@@ -564,7 +564,7 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_stop(struct device *dev, uint32_t id)
 	}
 
 #ifndef CONFIG_DMAMUX_STM32
-	LL_DMA_DisableIT_TC(dma, table_ll_stream[id]);
+	LL_DMA_DisableIT_TC(dma, dma_stm32_id_to_stream(id));
 #endif /* CONFIG_DMAMUX_STM32 */
 
 #if defined(CONFIG_DMA_STM32_V1)
@@ -623,7 +623,7 @@ static int dma_stm32_get_status(struct device *dev, uint32_t id,
 	}
 
 	stream = &config->streams[id];
-	stat->pending_length = LL_DMA_GetDataLength(dma, table_ll_stream[id]);
+	stat->pending_length = LL_DMA_GetDataLength(dma, dma_stm32_id_to_stream(id));
 	stat->dir = stream->direction;
 	stat->busy = stream->busy;
 
