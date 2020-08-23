@@ -74,6 +74,7 @@ uint32_t stm32_dma_get_pburst(struct dma_config *config, bool source_periph);
 #endif
 
 #ifdef CONFIG_DMAMUX_STM32
+#define DMA_STM32_EXPORT_DMAMUX
 /* dma_stm32_ api functions are exported to the dmamux_stm32 */
 int dma_stm32_configure(struct device *dev, uint32_t id,
 			       struct dma_config *config);
@@ -81,6 +82,8 @@ int dma_stm32_reload(struct device *dev, uint32_t id,
 			    uint32_t src, uint32_t dst, size_t size);
 int dma_stm32_start(struct device *dev, uint32_t id);
 int dma_stm32_stop(struct device *dev, uint32_t id);
+#else
+#define DMA_STM32_EXPORT_DMAMUX static
 #endif /* CONFIG_DMAMUX_STM32 */
 
 #endif /* DMA_STM32_H_*/
