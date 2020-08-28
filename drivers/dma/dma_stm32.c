@@ -279,7 +279,9 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_configure(struct device *dev, uint32_t id,
 		return -EBUSY;
 	}
 
-	stm32_dma_disable_stream(dma, id);
+	while (stm32_dma_disable_stream(dma, id) != 0) {
+	}
+
 	dma_stm32_clear_stream_irq(dev, id);
 
 	if (config->head_block->block_size > DMA_STM32_MAX_DATA_ITEMS) {
@@ -473,7 +475,7 @@ static int dma_stm32_disable_stream(DMA_TypeDef *dma, uint32_t id)
 	int count = 0;
 
 	for (;;) {
-		if (!stm32_dma_disable_stream(dma, id)) {
+		if (stm32_dma_disable_stream(dma, id) == 0) {
 			return 0;
 		}
 		/* After trying for 5 seconds, give up */
@@ -501,8 +503,10 @@ DMA_STM32_EXPORT_DMAMUX int dma_stm32_reload(struct device *dev, uint32_t id,
 		return -EINVAL;
 	}
 
-	stm32_dma_disable_stream(dma, id);
 	stream = &config->streams[id];
+
+	while (stm32_dma_disable_stream(dma, id) != 0) {
+	}
 
 	switch (stream->direction) {
 	case MEMORY_TO_PERIPHERAL:
