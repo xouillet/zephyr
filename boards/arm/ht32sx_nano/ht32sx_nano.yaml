@@ -1,0 +1,16 @@
+identifier: ht32sx_nano
+name: HT-Micron iMCP HT32SX Nano
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - gpio
+  - i2c
+  - spi
+  - eeprom
+  - sigfox
+ram: 8
+flash: 64

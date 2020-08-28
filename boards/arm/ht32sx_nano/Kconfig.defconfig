@@ -1,0 +1,37 @@
+# Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_HT32SX_NANO
+
+config BOARD
+	default "ht32sx_nano"
+
+config SPI_STM32_DMA
+	default y
+	depends on SPI
+
+config SPI_STM32_INTERRUPT
+	default n
+	depends on SPI
+
+config SPI_STM32_USE_HW_SS
+	default n
+	depends on SPI
+
+config SIGFOX_S2LP
+	default y
+	depends on SIGFOX
+
+config SIGFOX_S2LP_ERRATA_SDO_PIN_NOT_TRI_STATED
+	default y
+	depends on SIGFOX_S2LP
+
+config SIGFOX_S2LP_RX_STACK_SIZE
+	default 512
+	depends on SIGFOX_S2LP
+
+config SIGFOX_S2LP_HAS_EXTERNAL_PA_LNA
+	default y
+	depends on SIGFOX_S2LP
+
+endif # BOARD_HT32SX_NANO
