@@ -62,29 +62,29 @@ uint32_t dummy_rx_tx_buffer;
 static void dma_callback(struct device *dev, void *arg,
 			 uint32_t channel, int status)
 {
-	/* arg directly holds the client data */
-	struct spi_stm32_data *data = arg;
+	/* arg directly holds the spi device */
+	struct device *spi_dev = arg;
+	struct spi_stm32_data *data = DEV_DATA(spi_dev);
 
 	if (status != 0) {
 		LOG_ERR("DMA callback error with channel %d.", channel);
-		data->dma_tx.transfer_complete = true;
-		data->dma_rx.transfer_complete = true;
-		return;
+		data->status_flags |= SPI_STM32_DMA_ERROR_FLAG;
+	} else {
+		/* identify the origin of this callback */
+		if (channel == data->dma_tx.channel) {
+			/* this part of the transfer ends */
+			data->status_flags |= SPI_STM32_DMA_TX_DONE_FLAG;
+		} else if (channel == data->dma_rx.channel) {
+			/* this part of the transfer ends */
+			data->status_flags |= SPI_STM32_DMA_RX_DONE_FLAG;
+		} else {
+			LOG_ERR("DMA callback channel %d is not valid.",
+								channel);
+			data->status_flags |= SPI_STM32_DMA_ERROR_FLAG;
+		}
 	}
 
-	/* identify the origin of this callback */
-	if (channel == data->dma_tx.channel) {
-		/* this part of the transfer ends */
-		data->dma_tx.transfer_complete = true;
-	} else if (channel == data->dma_rx.channel) {
-		/* this part of the transfer ends */
-		data->dma_rx.transfer_complete = true;
-	} else {
-		LOG_ERR("DMA callback channel %d is not valid.", channel);
-		data->dma_tx.transfer_complete = true;
-		data->dma_rx.transfer_complete = true;
-		return;
-	}
+	k_sem_give(&data->status_sem);
 }
 
 static int spi_stm32_dma_tx_load(struct device *dev, const uint8_t *buf,
@@ -92,168 +92,137 @@ static int spi_stm32_dma_tx_load(struct device *dev, const uint8_t *buf,
 {
 	const struct spi_stm32_config *cfg = DEV_CFG(dev);
 	struct spi_stm32_data *data = DEV_DATA(dev);
-	struct dma_block_config blk_cfg;
+	struct dma_block_config *blk_cfg;
 	int ret;
 
 	/* remember active TX DMA channel (used in callback) */
 	struct stream *stream = &data->dma_tx;
 
+	blk_cfg = &stream->dma_blk_cfg;
+
 	/* prepare the block for this TX DMA channel */
-	memset(&blk_cfg, 0, sizeof(blk_cfg));
-	blk_cfg.block_size = len;
+	memset(blk_cfg, 0, sizeof(struct dma_block_config));
+	blk_cfg->block_size = len;
 
 	/* tx direction has memory as source and periph as dest. */
 	if (buf == NULL) {
 		dummy_rx_tx_buffer = 0;
 		/* if tx buff is null, then sends NOP on the line. */
-		blk_cfg.source_address = (uint32_t)&dummy_rx_tx_buffer;
-		blk_cfg.source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+		blk_cfg->source_address = (uint32_t)&dummy_rx_tx_buffer;
+		blk_cfg->source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 	} else {
-		blk_cfg.source_address = (uint32_t)buf;
+		blk_cfg->source_address = (uint32_t)buf;
 		if (data->dma_tx.src_addr_increment) {
-			blk_cfg.source_addr_adj = DMA_ADDR_ADJ_INCREMENT;
+			blk_cfg->source_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 		} else {
-			blk_cfg.source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+			blk_cfg->source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 		}
 	}
 
-	blk_cfg.dest_address = (uint32_t)LL_SPI_DMA_GetRegAddr(cfg->spi);
+	blk_cfg->dest_address = (uint32_t)LL_SPI_DMA_GetRegAddr(cfg->spi);
 	/* fifo mode NOT USED there */
 	if (data->dma_tx.dst_addr_increment) {
-		blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_INCREMENT;
+		blk_cfg->dest_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 	} else {
-		blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+		blk_cfg->dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 	}
 
 	/* give the fifo mode from the DT */
-	blk_cfg.fifo_mode_control = data->dma_tx.fifo_threshold;
+	blk_cfg->fifo_mode_control = data->dma_tx.fifo_threshold;
 
 	/* direction is given by the DT */
-	stream->dma_cfg.head_block = &blk_cfg;
-	/* give the client data as arg, as the callback comes from the dma */
-	stream->dma_cfg.user_data = data;
+	stream->dma_cfg.head_block = blk_cfg;
+	/* give the client dev as arg, as the callback comes from the dma */
+	stream->dma_cfg.user_data = dev;
 	/* pass our client origin to the dma: data->dma_tx.dma_channel */
-	ret = dma_config(data->dev_dma_tx, data->dma_tx.channel,
+	ret = dma_config(data->dma_tx.dma_dev, data->dma_tx.channel,
 			&stream->dma_cfg);
 	/* the channel is the actual stream from 0 */
 	if (ret != 0) {
 		return ret;
 	}
 
-	/* starting this dma transfer */
-	data->dma_tx.transfer_complete = false;
-
 	/* gives the request ID to the dma mux */
-	return dma_start(data->dev_dma_tx, data->dma_tx.channel);
+	return dma_start(data->dma_tx.dma_dev, data->dma_tx.channel);
 }
 
 static int spi_stm32_dma_rx_load(struct device *dev, uint8_t *buf, size_t len)
 {
 	const struct spi_stm32_config *cfg = DEV_CFG(dev);
 	struct spi_stm32_data *data = DEV_DATA(dev);
-	struct dma_block_config blk_cfg;
+	struct dma_block_config *blk_cfg;
 	int ret;
 
 	/* retrieve active RX DMA channel (used in callback) */
 	struct stream *stream = &data->dma_rx;
 
+	blk_cfg = &stream->dma_blk_cfg;
+
 	/* prepare the block for this RX DMA channel */
-	memset(&blk_cfg, 0, sizeof(blk_cfg));
-	blk_cfg.block_size = len;
+	memset(blk_cfg, 0, sizeof(struct dma_block_config));
+	blk_cfg->block_size = len;
 
 
 	/* rx direction has periph as source and mem as dest. */
 	if (buf == NULL) {
 		/* if rx buff is null, then write data to dummy address. */
-		blk_cfg.dest_address = (uint32_t)&dummy_rx_tx_buffer;
-		blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+		blk_cfg->dest_address = (uint32_t)&dummy_rx_tx_buffer;
+		blk_cfg->dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 	} else {
-		blk_cfg.dest_address = (uint32_t)buf;
+		blk_cfg->dest_address = (uint32_t)buf;
 		if (data->dma_rx.dst_addr_increment) {
-			blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_INCREMENT;
+			blk_cfg->dest_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 		} else {
-			blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+			blk_cfg->dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 		}
 	}
 
-	blk_cfg.source_address = (uint32_t)LL_SPI_DMA_GetRegAddr(cfg->spi);
+	blk_cfg->source_address = (uint32_t)LL_SPI_DMA_GetRegAddr(cfg->spi);
 	if (data->dma_rx.src_addr_increment) {
-		blk_cfg.source_addr_adj = DMA_ADDR_ADJ_INCREMENT;
+		blk_cfg->source_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 	} else {
-		blk_cfg.source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
+		blk_cfg->source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 	}
 
 	/* give the fifo mode from the DT */
-	blk_cfg.fifo_mode_control = data->dma_rx.fifo_threshold;
+	blk_cfg->fifo_mode_control = data->dma_rx.fifo_threshold;
 
 	/* direction is given by the DT */
-	stream->dma_cfg.head_block = &blk_cfg;
-	stream->dma_cfg.user_data = data;
+	stream->dma_cfg.head_block = blk_cfg;
+	stream->dma_cfg.user_data = dev;
 
 
 	/* pass our client origin to the dma: data->dma_rx.channel */
-	ret = dma_config(data->dev_dma_rx, data->dma_rx.channel,
+	ret = dma_config(data->dma_rx.dma_dev, data->dma_rx.channel,
 			&stream->dma_cfg);
 	/* the channel is the actual stream from 0 */
 	if (ret != 0) {
 		return ret;
 	}
 
-	/* starting this dma transfer */
-	data->dma_rx.transfer_complete = false;
-
 	/* gives the request ID to the dma mux */
-	return dma_start(data->dev_dma_rx, data->dma_rx.channel);
+	return dma_start(data->dma_rx.dma_dev, data->dma_rx.channel);
 }
 
-static int spi_dma_move_buffers(struct device *dev)
+static int spi_dma_move_buffers(struct device *dev, size_t len)
 {
 	struct spi_stm32_data *data = DEV_DATA(dev);
 	int ret;
 	size_t dma_segment_len;
 
-	if (data->ctx.rx_len == 0 && data->ctx.tx_len == 0) {
-		LOG_ERR("RX len and TX len are 0");
-		return -1;
-	}
-
-	/* Load receive first, so it can accept transmit data */
-	if (data->ctx.rx_len > 0) {
-		dma_segment_len = data->ctx.rx_len
-				/ data->dma_rx.dma_cfg.dest_data_size;
-		ret = spi_stm32_dma_rx_load(dev, data->ctx.rx_buf,
-					    dma_segment_len);
-	} else {
-		/* recv as many dummy bytes as we want to send */
-		dma_segment_len = spi_context_total_tx_len(&data->ctx)
-				/ data->dma_rx.dma_cfg.dest_data_size;
-		ret = spi_stm32_dma_rx_load(dev, NULL, dma_segment_len);
-	}
+	dma_segment_len = len / data->dma_rx.dma_cfg.dest_data_size;
+	ret = spi_stm32_dma_rx_load(dev, data->ctx.rx_buf, dma_segment_len);
 
 	if (ret != 0) {
 		return ret;
 	}
 
-	if (data->ctx.tx_len > 0) {
-		dma_segment_len = data->ctx.tx_len
-				/ data->dma_tx.dma_cfg.source_data_size;
-		ret = spi_stm32_dma_tx_load(dev, data->ctx.tx_buf,
-					    dma_segment_len);
-	} else {
-		/* send as many dummy bytes as we want to recv */
-		dma_segment_len = spi_context_total_rx_len(&data->ctx)
-				/ data->dma_tx.dma_cfg.source_data_size;
-		ret = spi_stm32_dma_tx_load(dev, NULL, dma_segment_len);
-	}
+	dma_segment_len = len / data->dma_tx.dma_cfg.source_data_size;
+	ret = spi_stm32_dma_tx_load(dev, data->ctx.tx_buf, dma_segment_len);
 
 	return ret;
 }
 
-static bool spi_stm32_dma_transfer_ongoing(struct spi_stm32_data *data)
-{
-	return ((data->dma_tx.transfer_complete != true)
-		&& (data->dma_rx.transfer_complete != true));
-}
 #endif /* CONFIG_SPI_STM32_DMA */
 
 /* Value to shift out when no application data needs transmitting. */
@@ -556,16 +525,6 @@ static int spi_stm32_configure(struct device *dev,
 	ll_func_set_fifo_threshold_8bit(spi);
 #endif
 
-#ifdef CONFIG_SPI_STM32_DMA
-	/* with LL_SPI_FULL_DUPLEX mode, both tx and Rx DMA are on */
-	if (data->dev_dma_tx) {
-		LL_SPI_EnableDMAReq_TX(spi);
-	}
-	if (data->dev_dma_rx) {
-		LL_SPI_EnableDMAReq_RX(spi);
-	}
-#endif /* CONFIG_SPI_STM32_DMA */
-
 #ifndef CONFIG_SOC_SERIES_STM32F1X
 	LL_SPI_SetStandard(spi, LL_SPI_PROTOCOL_MOTOROLA);
 #endif
@@ -670,6 +629,30 @@ static int transceive(struct device *dev,
 }
 
 #ifdef CONFIG_SPI_STM32_DMA
+
+static int wait_dma_rx_tx_done(struct device *dev)
+{
+	struct spi_stm32_data *data = DEV_DATA(dev);
+	int res = -1;
+
+	while (1) {
+		res = k_sem_take(&data->status_sem, K_MSEC(1000));
+		if (res != 0) {
+			return res;
+		}
+
+		if (data->status_flags & SPI_STM32_DMA_ERROR_FLAG) {
+			return -EIO;
+		}
+
+		if (data->status_flags & SPI_STM32_DMA_DONE_FLAG) {
+			return 0;
+		}
+	}
+
+	return res;
+}
+
 static int transceive_dma(struct device *dev,
 		      const struct spi_config *config,
 		      const struct spi_buf_set *tx_bufs,
@@ -691,87 +674,75 @@ static int transceive_dma(struct device *dev,
 
 	spi_context_lock(&data->ctx, asynchronous, signal);
 
-	data->dma_tx.transfer_complete = false;
-	data->dma_rx.transfer_complete = false;
+	k_sem_reset(&data->status_sem);
 
 	ret = spi_stm32_configure(dev, config);
-	if (ret) {
+	if (ret != 0) {
 		return ret;
 	}
 
 	/* Set buffers info */
 	spi_context_buffers_setup(&data->ctx, tx_bufs, rx_bufs, 1);
 
-	LL_SPI_Enable(spi);
-
 	/* This is turned off in spi_stm32_complete(). */
 	spi_context_cs_control(&data->ctx, true);
 
-	ret = spi_dma_move_buffers(dev);
-	if (ret) {
-		return ret;
-	}
+	LL_SPI_DisableDMAReq_TX(spi);
+	LL_SPI_DisableDMAReq_RX(spi);
+	LL_SPI_Disable(spi);
 
-	/* store spi peripheral address */
-	uint32_t periph_addr = data->dma_tx.dma_cfg.head_block->dest_address;
+	while (data->ctx.rx_len > 0 || data->ctx.tx_len > 0) {
+		size_t dma_len;
 
-	for (; ;) {
-		/* wait for SPI busy flag */
-		while (LL_SPI_IsActiveFlag_BSY(spi) == 1) {
+		if (data->ctx.rx_len == 0) {
+			dma_len = data->ctx.tx_len;
+		} else if (data->ctx.tx_len == 0) {
+			dma_len = data->ctx.rx_len;
+		} else {
+			dma_len = data->ctx.tx_len < data->ctx.rx_len ?
+					data->ctx.tx_len : data->ctx.rx_len;
 		}
 
-		/* once SPI is no more busy, wait for DMA transfer end */
-		while (spi_stm32_dma_transfer_ongoing(data) == 1) {
+		data->status_flags = 0;
+
+		ret = spi_dma_move_buffers(dev, dma_len);
+		if (ret != 0) {
+			break;
 		}
+
+		LL_SPI_EnableDMAReq_RX(spi);
+		LL_SPI_EnableDMAReq_TX(spi);
+		LL_SPI_Enable(spi);
+
+		ret = wait_dma_rx_tx_done(dev);
+		if (ret != 0) {
+			break;
+		}
+
+#ifdef SPI_SR_FTLVL
+		while (LL_SPI_GetTxFIFOLevel(spi) > 0) {
+		}
+#endif
 
 		/* wait until TX buffer is really empty */
 		while (LL_SPI_IsActiveFlag_TXE(spi) == 0) {
 		}
 
-		if ((data->ctx.tx_count <= 1) && (data->ctx.rx_count <= 1)) {
-			/* if it was the last count, then we are done */
-			break;
+		/* wait until hardware is really ready */
+		while (LL_SPI_IsActiveFlag_BSY(spi) == 1) {
 		}
 
-		if (data->dma_tx.transfer_complete == true) {
-			LL_SPI_DisableDMAReq_TX(spi);
-			/*
-			 * Update the current Tx buffer, decreasing length of
-			 * data->ctx.tx_count,  by its own length
-			 */
-			spi_context_update_tx(&data->ctx, 1, data->ctx.tx_len);
-			/* keep the same dest (peripheral) */
-			data->dma_tx.transfer_complete = false;
-			/* and reload dma with a new source (memory) buffer */
-			dma_reload(data->dev_dma_tx,
-				data->dma_tx.channel,
-				(uint32_t)data->ctx.tx_buf,
-				periph_addr,
-				data->ctx.tx_len);
-		}
+		LL_SPI_Disable(spi);
+		LL_SPI_DisableDMAReq_TX(spi);
+		LL_SPI_DisableDMAReq_RX(spi);
 
-		if (data->dma_rx.transfer_complete == true) {
-			LL_SPI_DisableDMAReq_RX(spi);
-			/*
-			 * Update the current Rx buffer, decreasing length of
-			 * data->ctx.rx_count,  by its own length
-			 */
-			spi_context_update_rx(&data->ctx, 1, data->ctx.rx_len);
-			/* keep the same source (peripheral) */
-			data->dma_rx.transfer_complete = false;
-			/* and reload dma with a new dest (memory) buffer */
-			dma_reload(data->dev_dma_rx,
-				data->dma_rx.channel,
-				periph_addr,
-				(uint32_t)data->ctx.rx_buf,
-				data->ctx.rx_len);
-		}
-		LL_SPI_EnableDMAReq_RX(spi);
-		LL_SPI_EnableDMAReq_TX(spi);
+		spi_context_update_tx(&data->ctx, 1, dma_len);
+		spi_context_update_rx(&data->ctx, 1, dma_len);
 	}
 
-	/* end of the transfer : all buffers sent/receceived */
 	LL_SPI_Disable(spi);
+	LL_SPI_DisableDMAReq_TX(spi);
+	LL_SPI_DisableDMAReq_RX(spi);
 
 	spi_stm32_complete(data, spi, ret);
 
@@ -837,16 +808,16 @@ static int spi_stm32_init(struct device *dev)
 #ifdef CONFIG_SPI_STM32_DMA
 	if (data->dma_tx.dma_name != NULL) {
 		/* Get the binding to the DMA device */
-		data->dev_dma_tx = device_get_binding(data->dma_tx.dma_name);
-		if (!data->dev_dma_tx) {
+		data->dma_tx.dma_dev = device_get_binding(data->dma_tx.dma_name);
+		if (!data->dma_tx.dma_dev) {
 			LOG_ERR("%s device not found", data->dma_tx.dma_name);
 			return -ENODEV;
 		}
 	}
 
 	if (data->dma_rx.dma_name != NULL) {
-		data->dev_dma_rx = device_get_binding(data->dma_rx.dma_name);
-		if (!data->dev_dma_rx) {
+		data->dma_rx.dma_dev = device_get_binding(data->dma_rx.dma_name);
+		if (!data->dma_rx.dma_dev) {
 			LOG_ERR("%s device not found", data->dma_rx.dma_name);
 			return -ENODEV;
 		}
@@ -905,20 +876,25 @@ static void spi_stm32_irq_config_func_##id(struct device *dev)		\
 				DMA_CHANNEL_CONFIG(index, dir)),	\
 	.dst_addr_increment = STM32_DMA_CONFIG_##dest_dev##_ADDR_INC(	\
 				DMA_CHANNEL_CONFIG(index, dir)),	\
-	.transfer_complete = false,					\
 	.fifo_threshold = STM32_DMA_FEATURES_FIFO_THRESHOLD(		\
 					DMA_FEATURES(index, dir)),	\
 
 
 #if CONFIG_SPI_STM32_DMA
 #define SPI_DMA_CHANNEL(id, dir, DIR, src, dest)			\
-.dma_##dir = {								\
-	 COND_CODE_1(DT_INST_DMAS_HAS_NAME(id, dir),			\
-		     (SPI_DMA_CHANNEL_INIT(id, dir, DIR, src, dest)),	\
-		     (NULL))						\
-	     },
+	.dma_##dir = {							\
+		COND_CODE_1(DT_INST_DMAS_HAS_NAME(id, dir),		\
+			(SPI_DMA_CHANNEL_INIT(id, dir, DIR, src, dest)),\
+			(NULL))						\
+		},
+
+#define SPI_DMA_STATUS_SEM(id)						\
+	.status_sem = Z_SEM_INITIALIZER(				\
+		spi_stm32_dev_data_##id.status_sem, 0, 1),
+
 #else
 #define SPI_DMA_CHANNEL(id, dir, DIR, src, dest)
+#define SPI_DMA_STATUS_SEM(id)
 #endif
 
 #define STM32_SPI_INIT(id)						\
@@ -938,6 +914,7 @@ static struct spi_stm32_data spi_stm32_dev_data_##id = {		\
 	SPI_CONTEXT_INIT_SYNC(spi_stm32_dev_data_##id, ctx),		\
 	SPI_DMA_CHANNEL(id, rx, RX, PERIPHERAL, MEMORY)			\
 	SPI_DMA_CHANNEL(id, tx, TX, MEMORY, PERIPHERAL)			\
+	SPI_DMA_STATUS_SEM(id)						\
 };									\
 									\
 DEVICE_AND_API_INIT(spi_stm32_##id, DT_INST_LABEL(id),			\
