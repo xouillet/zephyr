@@ -1,0 +1,29 @@
+# ATL-Electronics LoRaWAN Module
+
+# Copyright (c) 2018 Aleksandr Makarov <aleksandr.o.makarov@gmail.com>
+# Copyright (c) 2020 ATL-Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_ATL_LRWAN_MOD
+
+config BOARD
+	default "atl_lrwan_mod"
+
+choice COUNTER_RTC_STM32_CLOCK_SRC
+	default COUNTER_RTC_STM32_CLOCK_LSE
+	depends on COUNTER
+endchoice # COUNTER_RTC_STM32_CLOCK_SRC
+
+config LORA_SX12XX
+	default y
+	depends on LORA
+
+config SPI
+	default y
+	depends on LORA
+
+config GPIO
+	default y
+	depends on LORA
+
+endif # BOARD_ATL_LRWAN_MOD

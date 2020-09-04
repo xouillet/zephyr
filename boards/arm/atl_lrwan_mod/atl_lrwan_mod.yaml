@@ -1,0 +1,21 @@
+identifier: atl_lora_mod
+name: ATL-Electronics LoRaWAN Module
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 20
+flash: 128
+testing:
+  ignore_tags:
+    - net
+supported:
+  - spi
+  - i2c
+  - gpio
+  - pinmux
+  - counter
+  - eeprom
+  - nvs
