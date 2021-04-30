@@ -33,6 +33,16 @@
 			compatible = "mmio-sram";
 		};
 
+		eclic: interrupt-controller@d2000000 {
+			#interrupt-cells = <2>;
+			compatible = "nuclei,eclic";
+			interrupt-controller;
+			reg = <0xd2000000 0x0001
+			       0xd2000004 0x0001
+			       0xd2000400 0x1000>;
+			label = "GD32_ECLIC";
+		};
+
 		fmc: flash-controller@40022000 {
 			compatible = "gigadevice,gd32-flash-controller";
 			label = "FLASH_CTRL";

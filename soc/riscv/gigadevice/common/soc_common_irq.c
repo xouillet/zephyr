@@ -13,40 +13,14 @@
 
 void arch_irq_enable(unsigned int irq)
 {
-	uint32_t mie;
-
-#if defined(CONFIG_RISCV_HAS_PLIC)
-	unsigned int level = irq_get_level(irq);
-
-	if (level == 2) {
-		irq = irq_from_level_2(irq);
-		riscv_plic_irq_enable(irq);
-		return;
-	}
-#endif
-
-	/*
-	 * CSR mie register is updated using atomic instruction csrrs
-	 * (atomic read and set bits in CSR register)
-	 */
-	__asm__ volatile ("csrrs %0, mie, %1\n"
-			  : "=r" (mie)
-			  : "r" (1 << irq));
+	eclic_enable_interrupt(irq);
 }
 
 void arch_irq_disable(unsigned int irq)
 {
 	uint32_t mie;
 
-#if defined(CONFIG_RISCV_HAS_PLIC)
-	unsigned int level = irq_get_level(irq);
-
-	if (level == 2) {
-		irq = irq_from_level_2(irq);
-		riscv_plic_irq_disable(irq);
-		return;
-	}
-#endif
+	eclic_disable_interrupt(irq);
 
 	/*
 	 * Use atomic instruction csrrc to disable device interrupt in mie CSR.
@@ -59,32 +33,15 @@ void arch_irq_disable(unsigned int irq)
 
 void arch_irq_priority_set(unsigned int irq, unsigned int prio)
 {
-#if defined(CONFIG_RISCV_HAS_PLIC)
-	unsigned int level = irq_get_level(irq);
-
-	if (level == 2) {
-		irq = irq_from_level_2(irq);
-		riscv_plic_set_priority(irq, prio);
-	}
-#endif
+	eclic_set_nonvmode(irq);
+	eclic_set_level_trig(irq);
+	eclic_set_irq_priority(irq, prio);
 }
 
 int arch_irq_is_enabled(unsigned int irq)
 {
-	uint32_t mie;
-
-#if defined(CONFIG_RISCV_HAS_PLIC)
-	unsigned int level = irq_get_level(irq);
-
-	if (level == 2) {
-		irq = irq_from_level_2(irq);
-		return riscv_plic_irq_is_enabled(irq);
-	}
-#endif
-
-	__asm__ volatile ("csrr %0, mie" : "=r" (mie));
-
-	return !!(mie & (1 << irq));
+	//return ECLIC_GetEnableIRQ(irq);
+	return 0;
 }
 
 #if defined(CONFIG_RISCV_SOC_INTERRUPT_INIT)

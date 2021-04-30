@@ -6,7 +6,10 @@
 config SOC_SERIES_GD32VF103
 	bool "GigaDevice GD32VF103 series MCU - Mainstream"
 	select RISCV
+	select RISCV_HAS_CPU_IDLE
 	select ATOMIC_OPERATIONS_C
 	select SOC_FAMILY_GD32
+	select COMPRESSED_ISA
+	select NUCLEI_ECLIC
 	help
 	  Enable support for GigaDevice GD32VF103 MCU series
