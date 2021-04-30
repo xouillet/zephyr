@@ -152,6 +152,8 @@ manifest:
       repo-path: tensorflow
       path: modules/lib/tensorflow
       revision: dc70a45a7cc12c25726a32cd91b28be59e7bc596
+    - name: hal_gigadevice
+      path: modules/hal/gigadevice
 
   self:
     path: zephyr

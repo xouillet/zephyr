@@ -168,6 +168,7 @@ GEFanuc	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
 geniatech	Geniatech, Inc.
 giantec	Giantec Semiconductor, Inc.
 giantplus	Giantplus Technology Co., Ltd.
+gigadevice	GigaDevice Semiconductor
 globalscale	Globalscale Technologies, Inc.
 globaltop	GlobalTop Technology, Inc.
 gmt	Global Mixed-mode Technology, Inc.
