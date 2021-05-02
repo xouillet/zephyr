@@ -14,6 +14,10 @@
 #include <soc.h>
 #include <drivers/uart.h>
 
+#ifndef USART_STAT0
+#define USART_STAT0 USART_STAT
+#endif
+
 struct gd32_config {
 	uint32_t periph_id;
 };

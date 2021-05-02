@@ -1,0 +1,15 @@
+# Sipeed Logan Nano with GigaDevice GD32VF103CBT6
+#
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_SIPEED_LOGAN_NANO
+
+config BOARD
+	default "sipeed_logan_nano"
+
+config BOARD_CLOCK
+	int
+	default 8000000
+
+endif   # BOARD_SIPEED_LOGAN_NANO

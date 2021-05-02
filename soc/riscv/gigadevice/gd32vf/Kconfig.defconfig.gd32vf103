@@ -1,0 +1,40 @@
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_SERIES_GD32VF103
+
+config SOC_SERIES
+	default "gd32vf"
+
+config SOC_SUB_SERIES
+	string
+	default "gd32vf103"
+
+config SOC_PART_NUMBER
+	string
+	default "gd32vf103c4t6" if SOC_PART_NUMBER_GD32VF103C4T6
+	default "gd32vf103c6t6" if SOC_PART_NUMBER_GD32VF103C6T6
+	default "gd32vf103c8t6" if SOC_PART_NUMBER_GD32VF103C8T6
+	default "gd32vf103cbt6" if SOC_PART_NUMBER_GD32VF103CBT6
+	default "gd32vf103r4t6" if SOC_PART_NUMBER_GD32VF103R4T6
+	default "gd32vf103r6t6" if SOC_PART_NUMBER_GD32VF103R6T6
+	default "gd32vf103r8t6" if SOC_PART_NUMBER_GD32VF103R8T6
+	default "gd32vf103rbt6" if SOC_PART_NUMBER_GD32VF103RBT6
+	default "gd32vf103t4u6" if SOC_PART_NUMBER_GD32VF103T4U6
+	default "gd32vf103t6u6" if SOC_PART_NUMBER_GD32VF103T6U6
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 108000000
+
+config NUM_IRQS
+	default 86
+
+# Configure default device drivers. If a feature is supported by more than one
+# device driver the default configuration will be placed in the board defconfig
+# file.
+
+config USART_GD32
+	default y
+	depends on SERIAL
+
+endif   # SOC_SERIES_GD32VF103

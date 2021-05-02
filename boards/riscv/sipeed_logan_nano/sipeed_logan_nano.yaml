@@ -1,0 +1,15 @@
+#
+# Copyright (c) 2021, ATL Electronics
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+identifier: sipeed_logan_nano
+name: Sipeed Logan Nano with GigaDevice GD32VF103CBT6
+type: mcu
+arch: riscv32
+ram: 32
+flash: 128
+toolchain:
+  - zephyr
+

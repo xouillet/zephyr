@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2021, ATL Electronics
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "nuclei,bumblebee", "riscv";
+			reg = <0>;
+			riscv,isa = "rv32imac";
+			status = "okay";
+
+			#address-cells = <1>;
+			#size-cells = <1>;
+		};
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		sram0: memory@20000000 {
+			compatible = "mmio-sram";
+		};
+
+		fmc: flash-controller@40022000 {
+			compatible = "gigadevice,gd32-flash-controller";
+			label = "FLASH_CTRL";
+			reg = <0x40022000 0x400>;
+			peripheral-id = <6>;
+
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			flash0: flash@8000000 {
+				compatible = "soc-nv-flash";
+				label = "FLASH_0";
+			};
+		};
+
+		usart0: usart@40013800 {
+			compatible = "gigadevice,gd32-usart";
+			reg = <0x40013800 0x400>;
+			peripheral-id = <0>;
+			status = "disabled";
+			label = "usart_0";
+		};
+	};
+};

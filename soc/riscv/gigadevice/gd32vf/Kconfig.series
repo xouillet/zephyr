@@ -1,0 +1,12 @@
+# GigaDevice GD32VF MCU line
+#
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_GD32VF103
+	bool "GigaDevice GD32VF103 series MCU - Mainstream"
+	select RISCV
+	select ATOMIC_OPERATIONS_C
+	select SOC_FAMILY_GD32
+	help
+	  Enable support for GigaDevice GD32VF103 MCU series

@@ -1,0 +1,15 @@
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FAMILY_GD32
+	bool
+
+if SOC_FAMILY_GD32
+
+config SOC_FAMILY
+	string
+	default "gigadevice"
+
+source "soc/riscv/gigadevice/*/Kconfig.soc"
+
+endif # SOC_FAMILY_GD32

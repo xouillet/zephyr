@@ -1,0 +1,4 @@
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+source "soc/riscv/gigadevice/gd32vf/Kconfig.soc.gd32vf103"
