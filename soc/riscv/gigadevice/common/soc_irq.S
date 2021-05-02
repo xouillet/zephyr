@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 ITE Corporation. All Rights Reserved.
+ * Copyright (c) 2017 Jean-Paul Etienne <fractalclone@gmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,16 +26,13 @@ SECTION_FUNC(exception.other, __soc_handle_irq)
 	li t1, 1
 	sll t0, t1, a0
 	csrrc t1, mip, t0
-	move t2,ra
-	call    get_irq
-	move ra,t2
 
 	/* Return */
 	jalr x0, ra
 
 /*
  * __soc_is_irq is defined as .weak to allow re-implementation by
- * SOCs that does not truely follow the riscv privilege specification.
+ * SOCs that does not truly follow the riscv privilege specification.
  */
 WTEXT(__soc_is_irq)
 

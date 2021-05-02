@@ -121,7 +121,7 @@ static const struct uart_driver_api uart_gd32_driver_api = {
 		.periph_id = DT_INST_PROP(n, peripheral_id),			\
 	};									\
 	DEVICE_DT_INST_DEFINE(n, &uart_gd32_init,				\
-			      device_pm_control_nop,				\
+			      NULL,						\
 			      NULL,						\
 			      &gd32_uart##n##_config, PRE_KERNEL_1,		\
 			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		\

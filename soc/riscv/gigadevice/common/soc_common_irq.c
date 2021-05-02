@@ -13,15 +13,13 @@
 
 void arch_irq_enable(unsigned int irq)
 {
-#if CONFIG_ITE_IT8XXX2_INTC
-	if (irq > 0) {
-		ite_intc_irq_enable(irq);
-	}
-#else
 	uint32_t mie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
-	if (irq > RISCV_MAX_GENERIC_IRQ) {
+	unsigned int level = irq_get_level(irq);
+
+	if (level == 2) {
+		irq = irq_from_level_2(irq);
 		riscv_plic_irq_enable(irq);
 		return;
 	}
@@ -34,20 +32,17 @@ void arch_irq_enable(unsigned int irq)
 	__asm__ volatile ("csrrs %0, mie, %1\n"
 			  : "=r" (mie)
 			  : "r" (1 << irq));
-#endif /* CONFIG_ITE_IT8XXX2_INTC */
 }
 
 void arch_irq_disable(unsigned int irq)
 {
-#if CONFIG_ITE_IT8XXX2_INTC
-	if (irq > 0) {
-		ite_intc_irq_disable(irq);
-	}
-#else
 	uint32_t mie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
-	if (irq > RISCV_MAX_GENERIC_IRQ) {
+	unsigned int level = irq_get_level(irq);
+
+	if (level == 2) {
+		irq = irq_from_level_2(irq);
 		riscv_plic_irq_disable(irq);
 		return;
 	}
@@ -60,25 +55,36 @@ void arch_irq_disable(unsigned int irq)
 	__asm__ volatile ("csrrc %0, mie, %1\n"
 			  : "=r" (mie)
 			  : "r" (1 << irq));
-#endif /* CONFIG_ITE_IT8XXX2_INTC */
 };
+
+void arch_irq_priority_set(unsigned int irq, unsigned int prio)
+{
+#if defined(CONFIG_RISCV_HAS_PLIC)
+	unsigned int level = irq_get_level(irq);
+
+	if (level == 2) {
+		irq = irq_from_level_2(irq);
+		riscv_plic_set_priority(irq, prio);
+	}
+#endif
+}
 
 int arch_irq_is_enabled(unsigned int irq)
 {
 	uint32_t mie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
-	if (irq > RISCV_MAX_GENERIC_IRQ)
+	unsigned int level = irq_get_level(irq);
+
+	if (level == 2) {
+		irq = irq_from_level_2(irq);
 		return riscv_plic_irq_is_enabled(irq);
+	}
 #endif
 
 	__asm__ volatile ("csrr %0, mie" : "=r" (mie));
 
-#if CONFIG_ITE_IT8XXX2_INTC
-	return (mie && (ite_intc_irq_is_enable(irq)));
-#else
 	return !!(mie & (1 << irq));
-#endif /* CONFIG_ITE_IT8XXX2_INTC */
 }
 
 #if defined(CONFIG_RISCV_SOC_INTERRUPT_INIT)
