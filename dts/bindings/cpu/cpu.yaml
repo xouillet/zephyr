@@ -6,19 +6,38 @@
 include: base.yaml
 
 properties:
+    timebase-frequency:
+      type: int
+      required: false
+      description: |
+        A cell indicating the frequency of the timebase in Hz. This is not
+        directly used by the generic code, but you are welcome to copy/paste
+        the pSeries code for setting the kernel timebase/decrementer
+        calibration based on this value.
     clock-frequency:
       type: int
       required: false
-      description: Clock frequency in Hz
+      description: |
+        A cell indicating the CPU core clock frequency in Hz. A new property
+        will be defined for 64-bit values, but if your frequency is < 4Ghz,
+        one cell is enough. Here as well as for the above, the common code
+        doesn't use that property, but you are welcome to re-use the pSeries
+        or Maple one. A future kernel version might provide a common function
+        for this.
     cpu-power-states:
-       type: phandles
-       required: false
-       description: List of power management states supported by this cpu
+      type: phandles
+      required: false
+      description: |
+        List of power management states supported by this cpu
     i-cache-line-size:
       type: int
       required: false
-      description: i-cache line size
+      description: |
+        One cell, L1 data cache line size in bytes if different from the
+        block size.
     d-cache-line-size:
       type: int
       required: false
-      description: d-cache line size
+      description: |
+        One cell, L1 instruction cache line size in bytes if different from
+        the block size.
