@@ -1,0 +1,11 @@
+# Bouffalo Lab UART configuration
+#
+# Copyright (c) 2021 ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+config UART_BL
+	bool "Bouffalo Lab serial driver"
+	depends on SOC_FAMILY_BL
+	select SERIAL_HAS_DRIVER
+	help
+	  This option enables the UART driver for Bouffalo Lab SoC family.

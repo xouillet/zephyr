@@ -157,4 +157,6 @@ source "drivers/serial/Kconfig.rcar"
 
 source "drivers/serial/Kconfig.test"
 
+source "drivers/serial/Kconfig.bl"
+
 endif # SERIAL
