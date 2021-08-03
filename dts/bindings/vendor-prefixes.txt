@@ -89,6 +89,7 @@ bitmain	Bitmain Technologies
 blutek	BluTek Power
 boe	BOE Technology Group Co., Ltd.
 bosch	Bosch Sensortec GmbH
+bouffalolab	Bouffalo Lab
 boundary	Boundary Devices Inc.
 broadmobi	Shanghai Broadmobi Communication Technology Co.,Ltd.
 brcm	Broadcom Corporation
