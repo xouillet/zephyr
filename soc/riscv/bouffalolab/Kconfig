@@ -1,0 +1,15 @@
+# Copyright (c) 2021, ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FAMILY_BL
+	bool
+
+if SOC_FAMILY_BL
+
+config SOC_FAMILY
+	string
+	default "bouffalolab"
+
+source "soc/riscv/bouffalolab/*/Kconfig.soc"
+
+endif # SOC_FAMILY_BL
