@@ -21,6 +21,8 @@ manifest:
   remotes:
     - name: upstream
       url-base: https://github.com/zephyrproject-rtos
+    - name: nandojve
+      url-base: https://github.com/nandojve
 
   #
   # Please add items below based on alphabetical order
@@ -157,8 +159,9 @@ manifest:
       path: modules/crypto/mbedtls
       groups:
         - crypto
-    - name: mcuboot
-      revision: ca01db4216c63678768ea78fe04f27cd80b83246
+    - name: mcuboot-zephyr-module
+      remote: nandojve
+      revision: 31ed75b8d48a9e3dc5ae08524e3cc7fa4d80e7db
       path: bootloader/mcuboot
     - name: mcumgr
       revision: 31a2aa9cea58d3ceecbf0d5b91361bff7c94aeca

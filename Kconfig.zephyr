@@ -562,6 +562,10 @@ config BOOTLOADER_MCUBOOT
 
 if BOOTLOADER_MCUBOOT
 
+config MCUBOOT_BOOT_MAX_ALIGN
+	int "MCUboot max align"
+	default 16
+
 config MCUBOOT_SIGNATURE_KEY_FILE
 	string "Path to the mcuboot signing key file"
 	default ""
