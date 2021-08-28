@@ -24,6 +24,7 @@
 		zephyr,shell-uart = &uart0;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
 	};
 
 	leds {
@@ -164,4 +165,45 @@ xplained4_spi: &spi0 {
 };
 
 xplained4_serial: &uart1 {
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/*
+		 * The first half of sector 0 (64 kbytes)
+		 * is reserved for the bootloader
+		 */
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x0 0x00010000>;
+			read-only;
+		};
+
+		/*
+		 * The flash starting at 0x00010000 and ending at
+		 * 0x0001ffff (sectors 16-31) is reserved for use
+		 * by the application.
+		 */
+		storage_partition: partition@1e000 {
+			label = "storage";
+			reg = <0x0001e000 0x00002000>;
+		};
+
+		slot0_partition: partition@20000 {
+			label = "image-0";
+			reg = <0x00020000 0x00060000>;
+		};
+		slot1_partition: partition@80000 {
+			label = "image-1";
+			reg = <0x00080000 0x00060000>;
+		};
+		scratch_partition: partition@e0000 {
+			label = "image-scratch";
+			reg = <0x000e0000 0x00020000>;
+		};
+	};
 };
