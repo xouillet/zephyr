@@ -37,6 +37,9 @@ LOG_MODULE_REGISTER(flash_sam0);
  * of 200ms for a 8KiB block.
  */
 #define SAM_FLASH_TIMEOUT_MS 220
+#if defined(IFLASH0_PAGE_SIZE)
+#define IFLASH_PAGE_SIZE IFLASH0_PAGE_SIZE
+#endif
 
 struct flash_sam_dev_cfg {
 	Efc *regs;
@@ -162,7 +165,7 @@ static int flash_sam_write_page(const struct device *dev, off_t offset,
 static int flash_sam_write(const struct device *dev, off_t offset,
 			    const void *data, size_t len)
 {
-	int rc;
+	int rc = 0;
 	const uint8_t *data8 = data;
 
 	LOG_DBG("offset = 0x%lx, len = %zu", (long)offset, len);
@@ -306,7 +309,9 @@ static int flash_sam_erase(const struct device *dev, off_t offset, size_t len)
 	 * Invalidate the cache addresses corresponding to the erased blocks,
 	 * so that they really appear as erased.
 	 */
+#ifdef __DCACHE_PRESENT
 	SCB_InvalidateDCache_by_Addr((void *)(CONFIG_FLASH_BASE_ADDRESS + offset), len);
+#endif
 
 	return rc;
 }
@@ -314,7 +319,9 @@ static int flash_sam_erase(const struct device *dev, off_t offset, size_t len)
 /* Enable or disable the write protection */
 static int flash_sam_write_protection(const struct device *dev, bool enable)
 {
+#if defined(__CM7_REV)
 	Efc *const efc = DEV_CFG(dev)->regs;
+#endif
 	int rc = 0;
 
 	if (enable) {
@@ -322,9 +329,11 @@ static int flash_sam_write_protection(const struct device *dev, bool enable)
 		if (rc < 0) {
 			goto done;
 		}
+#if defined(__CM7_REV)
 		efc->EEFC_WPMR = EEFC_WPMR_WPKEY_PASSWD | EEFC_WPMR_WPEN;
 	} else {
 		efc->EEFC_WPMR = EEFC_WPMR_WPKEY_PASSWD;
+#endif
 	}
 
 done:
@@ -368,6 +377,7 @@ static int flash_sam_init(const struct device *dev)
 }
 
 static const struct flash_driver_api flash_sam_api = {
+	.write_protection = flash_sam_write_protection,
 	.erase = flash_sam_erase,
 	.write = flash_sam_write,
 	.read = flash_sam_read,
