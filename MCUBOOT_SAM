@@ -1,0 +1,11 @@
+# How to build the MCUboot for SAMV71
+
+west build -b sam_v71_xult -d build/mcuboot-sam_v71_xult bootloader/mcuboot/boot/zephyr
+west flash -d build/mcuboot-sam_v71_xult
+
+# How to build an App that runs with MCUboot
+
+west build -b sam_v71_xult -d build/app zephyr/samples/subsys/mgmt/updatehub
+west sign -t imgtool -d build/app -p `pwd`/bootloader/mcuboot/scripts/imgtool.py -- --version 1.0.0 --pad --key bootloader/mcuboot/root-rsa-2048.pem
+west flash -d build/app --hex-file build/app/zephyr/zephyr.signed.hex
+
