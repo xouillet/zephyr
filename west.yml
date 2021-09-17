@@ -21,6 +21,8 @@ manifest:
   remotes:
     - name: upstream
       url-base: https://github.com/zephyrproject-rtos
+    - name: nandojve
+      url-base: https://github.com/nandojve
 
   #
   # Please add items below based on alphabetical order
@@ -215,6 +217,11 @@ manifest:
       revision: c74be3890c9d975976fde1b1a3b2f5742bec34c0
       groups:
         - tee
+      revision: e18b7a9b040b5b5324520388047c9e7d678447e6
+    - name: hal_gigadevice
+      remote: nandojve
+      path: modules/hal/gigadevice
+      revision: 712058b46969053049559ebb06296b184f04abf7
 
   self:
     path: zephyr
