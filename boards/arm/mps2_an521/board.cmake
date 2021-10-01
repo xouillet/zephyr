@@ -12,6 +12,14 @@ set(QEMU_FLAGS_${ARCH}
   )
 board_set_debugger_ifnset(qemu)
 
+set(QEMU_FLAGS_HOST_SERIAL
+# To enable a real tty switch between serial/pty
+#  -chardev serial,path=/dev/ttyS0,id=hostS0
+
+  -chardev pty,id=hostS0
+  -serial chardev:hostS0
+  )
+
 if (CONFIG_BUILD_WITH_TFM)
   # Override the binary used by qemu, to use the combined
   # TF-M (Secure) & Zephyr (Non Secure) image (when running
