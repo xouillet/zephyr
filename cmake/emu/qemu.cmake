@@ -73,6 +73,9 @@ endif()
 # Connect monitor to the console chardev.
 list(APPEND QEMU_FLAGS -mon chardev=con,mode=readline)
 
+# Connect to other serial port
+list(APPEND QEMU_FLAGS ${QEMU_FLAGS_HOST_SERIAL})
+
 if(CONFIG_QEMU_ICOUNT)
   if(CONFIG_QEMU_ICOUNT_SLEEP)
     list(APPEND QEMU_FLAGS
